@@ -1,6 +1,6 @@
 # mcp-safety-scanner
 
-A tiny, dependency-free CLI that scans JS/TS codebases for common security footguns that show up in MCP servers and other “LLM + tools” backends.
+A tiny, dependency-free CLI that scans JS/TS/Python/Go codebases for common security footguns that show up in MCP servers and other “LLM + tools” backends.
 
 This is a heuristic scanner. It is meant to catch obvious mistakes fast (especially in early-stage prototypes) and to provide a simple “fail CI on high severity issues” gate.
 
@@ -41,7 +41,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.1.1
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.0
         with:
           path: .
           fail-on: high
@@ -51,7 +51,7 @@ jobs:
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.1.1
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.0
         id: scan
         with:
           path: .
@@ -67,12 +67,13 @@ SARIF upload (optional, requires permissions in some orgs):
 
 - Wildcard CORS (`Access-Control-Allow-Origin: *`, `cors({ origin: "*" })`)
 - Reflected CORS origin (`... = req.headers.origin`)
-- Dangerous code execution (`eval(`, `new Function(`)
-- Shell execution (`exec(` / `execSync(`)
+- CORS middleware defaults (e.g. `cors()` with no origin restrictions, `CORS(app)` in Python)
+- Dangerous code execution (`eval(`, `new Function(`, Python `exec(`)
+- Shell execution (Node `child_process.exec*`, Python `subprocess(..., shell=True)`, Go `exec.Command("sh", "-c", ...)`)
 - Suspicious file deletion (`rmSync(` / `unlinkSync(`)
 - Logging request headers (`console.log(req.headers...)`)
 
-File types scanned: `.js`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.jsx`, `.mts`, `.cts`, `.gs` (Google Apps Script).
+File types scanned: `.js`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.jsx`, `.mts`, `.cts`, `.gs` (Google Apps Script), `.py`, `.go`.
 
 ## Exit Codes
 

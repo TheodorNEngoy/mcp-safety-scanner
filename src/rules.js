@@ -11,6 +11,10 @@ export function severityRank(sev) {
 }
 
 const JS_TS_EXTS = Object.freeze([".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".mts", ".cts", ".gs"]);
+const PY_EXTS = Object.freeze([".py"]);
+const GO_EXTS = Object.freeze([".go"]);
+
+const EVAL_EXTS = Object.freeze([...JS_TS_EXTS, ...PY_EXTS]);
 
 function rule({ id, severity, title, description, exts = JS_TS_EXTS, patterns }) {
   return Object.freeze({ id, severity, title, description, exts, patterns });
@@ -24,10 +28,19 @@ export const RULES = Object.freeze([
     title: "Wildcard CORS origin",
     description:
       "Allowing any origin enables cross-site requests. For MCP/tool servers, prefer an allowlist (e.g. chatgpt.com) and do not combine wildcard origin with credentials.",
+    exts: null,
     patterns: [
       /Access-Control-Allow-Origin[^\n]*["']\*["']/i,
       /setHeader\(\s*["']Access-Control-Allow-Origin["']\s*,\s*["']\*["']\s*\)/i,
       /\bcors\s*\(\s*\{[^}]*\borigin\s*:\s*["']\*["']/i,
+
+      // Python (FastAPI/Starlette)
+      /\ballow_origins\s*=\s*\[\s*["']\*\s*["']\s*\]/i,
+      /\ballow_origin_regex\s*=\s*r?["']\.\*["']/i,
+
+      // Go (gin-contrib/cors, rs/cors, echo, etc.)
+      /\bAllowOrigins\s*:\s*\[\]string\s*\{[^}]*["']\*["'][^}]*\}/,
+      /\bAllowedOrigins\s*:\s*\[\]string\s*\{[^}]*["']\*["'][^}]*\}/,
     ],
   }),
 
@@ -37,21 +50,32 @@ export const RULES = Object.freeze([
     title: "Reflected CORS origin",
     description:
       "Reflecting the request Origin header without validation effectively allows any website to call your server. Use an explicit allowlist check.",
+    exts: null,
     patterns: [
       /Access-Control-Allow-Origin[^\n]*(req\.headers\.origin|request\.headers\.origin)/i,
       /setHeader\(\s*["']Access-Control-Allow-Origin["'][^\n]*(req\.headers\.origin|request\.headers\.origin)/i,
+
+      // Python (Flask/FastAPI/etc.)
+      /Access-Control-Allow-Origin[^\n]*(headers\.get\(\s*["']origin["']\s*\)|headers\[\s*["']origin["']\s*\])/i,
+
+      // Go net/http and common frameworks.
+      /Access-Control-Allow-Origin[^\n]*(Header\(\)\.Get\(\s*["']Origin["']\s*\)|Header\.Get\(\s*["']Origin["']\s*\))/i,
     ],
   }),
 
   rule({
     id: "cors-unconfigured-middleware",
     severity: "medium",
-    title: "cors() used without origin restrictions",
+    title: "CORS middleware used without origin restrictions",
     description:
-      "Using `cors()` with default settings is often broader than intended. Configure `origin` explicitly (allowlist) for servers that accept authenticated requests.",
+      "Using CORS middleware with default settings is often broader than intended. Configure allowed origins explicitly (allowlist) for servers that accept authenticated requests.",
+    exts: null,
     patterns: [
       /\buse\s*\(\s*cors\s*\(\s*\)\s*\)/,
       /\bapp\.use\s*\(\s*cors\s*\(\s*\)\s*\)/,
+
+      // Python (flask-cors)
+      /\bCORS\s*\(\s*app\s*\)/,
     ],
   }),
 
@@ -61,6 +85,7 @@ export const RULES = Object.freeze([
     title: "Dynamic code execution (eval / new Function)",
     description:
       "`eval()` / `new Function()` can turn untrusted input into code execution. Avoid entirely in networked services.",
+    exts: EVAL_EXTS,
     patterns: [/\beval\s*\(/, /\bnew\s+Function\s*\(/],
   }),
 
@@ -115,6 +140,46 @@ export const RULES = Object.freeze([
       "`express.json()` defaults may be too large/surprising for tool endpoints. Set an explicit `limit` to reduce DoS risk.",
     patterns: [/\bexpress\.json\s*\(\s*\)\s*/, /\bbodyParser\.json\s*\(\s*\)\s*/],
   }),
+
+  rule({
+    id: "python-exec",
+    severity: "critical",
+    title: "Dynamic code execution (Python exec)",
+    description: "`exec()` turns strings into code. Avoid entirely in networked services and tool backends.",
+    exts: PY_EXTS,
+    patterns: [/(?<![\w.])exec\s*\(/],
+  }),
+
+  rule({
+    id: "python-shell-exec",
+    severity: "high",
+    title: "Shell execution (Python subprocess shell=True / os.system)",
+    description:
+      "Shell execution is easy to misuse with untrusted input. Avoid `shell=True` and `os.system()`; prefer argument arrays and strict allowlists when absolutely required.",
+    exts: PY_EXTS,
+    patterns: [
+      /\bsubprocess\.(run|Popen|call|check_output|check_call)\s*\([^\n]*\bshell\s*=\s*True\b/,
+      /\bPopen\s*\([^\n]*\bshell\s*=\s*True\b/,
+      /\bos\.system\s*\(/,
+    ],
+  }),
+
+  rule({
+    id: "go-shell-exec",
+    severity: "high",
+    title: "Shell execution via os/exec (sh -c / cmd /c / powershell)",
+    description:
+      "Invoking a shell (`sh -c`, `cmd /c`, etc.) is easy to misuse with untrusted input. Prefer direct argument arrays and strict allowlists when absolutely required.",
+    exts: GO_EXTS,
+    patterns: [
+      /\bexec\.Command\s*\(\s*"(?:sh|bash|zsh)"\s*,\s*"-c"\s*[,)]/,
+      /\bexec\.CommandContext\s*\(\s*[^,]+,\s*"(?:sh|bash|zsh)"\s*,\s*"-c"\s*[,)]/,
+      /\bexec\.Command\s*\(\s*"(?:cmd|cmd\.exe)"\s*,\s*"(?:\/c|\/C)"\s*[,)]/,
+      /\bexec\.CommandContext\s*\(\s*[^,]+,\s*"(?:cmd|cmd\.exe)"\s*,\s*"(?:\/c|\/C)"\s*[,)]/,
+      /\bexec\.Command\s*\(\s*"(?:powershell|powershell\.exe)"\s*,\s*"-Command"\s*[,)]/,
+      /\bexec\.CommandContext\s*\(\s*[^,]+,\s*"(?:powershell|powershell\.exe)"\s*,\s*"-Command"\s*[,)]/,
+    ],
+  }),
 ]);
 
-export const DEFAULT_SCAN_EXTS = JS_TS_EXTS;
+export const DEFAULT_SCAN_EXTS = Object.freeze([...JS_TS_EXTS, ...PY_EXTS, ...GO_EXTS]);

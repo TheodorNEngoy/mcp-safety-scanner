@@ -16,10 +16,27 @@ test("detects wildcard and reflected CORS", async () => {
   assert.ok(ruleIds.has("child-process-exec"));
 });
 
+test("detects python and go footguns", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures);
+
+  const ruleIds = new Set(res.findings.map((f) => f.ruleId));
+  assert.ok(ruleIds.has("python-exec"));
+  assert.ok(ruleIds.has("python-shell-exec"));
+  assert.ok(ruleIds.has("go-shell-exec"));
+});
+
 test("ignores node_modules by default", async () => {
   const fixtures = path.resolve("test/fixtures");
   const res = await scanPath(fixtures);
   assert.ok(!res.findings.some((f) => f.file.includes("node_modules")));
+});
+
+test("ignores .venv and vendor by default", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures);
+  assert.ok(!res.findings.some((f) => f.file.includes(".venv")));
+  assert.ok(!res.findings.some((f) => f.file.includes("vendor")));
 });
 
 test("does not flag RegExp .exec() as child_process exec()", async () => {

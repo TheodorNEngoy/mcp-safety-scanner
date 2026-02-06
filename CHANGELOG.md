@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.0
+
+- Scan Python and Go files by default (`.py`, `.go`).
+- Add Python rules (CORS config, `exec()`, `subprocess(..., shell=True)`, `os.system()`).
+- Add Go rules (CORS config, `exec.Command("sh", "-c", ...)`).
+
 ## v0.1.3
 
 - Add `branding` metadata for GitHub Marketplace listing.
@@ -16,4 +22,3 @@
 ## v0.1.0
 
 - Initial release: CLI scanner + SARIF + GitHub Action.
-

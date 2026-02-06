@@ -1,5 +1,5 @@
 name: MCP Safety Scan
-description: Scan JS/TS repos for common MCP/tool-server security footguns (CORS, eval, exec, etc.)
+description: Scan JS/TS/Python/Go repos for common MCP/tool-server security footguns (CORS, eval, exec, etc.)
 author: Theodor N. Engøy
 
 branding:

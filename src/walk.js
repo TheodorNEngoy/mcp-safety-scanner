@@ -11,6 +11,15 @@ const DEFAULT_IGNORE_DIRS = new Set([
   ".next",
   ".turbo",
   ".cache",
+  // Common Python/Go build or dependency dirs.
+  ".venv",
+  "venv",
+  "__pycache__",
+  ".pytest_cache",
+  ".mypy_cache",
+  ".ruff_cache",
+  ".tox",
+  "vendor",
 ]);
 
 export async function collectCandidateFiles(rootPath, { exts, ignoreDirs = DEFAULT_IGNORE_DIRS, maxFiles = 50_000 } = {}) {
@@ -62,4 +71,3 @@ export async function collectCandidateFiles(rootPath, { exts, ignoreDirs = DEFAU
   await walk(rootAbs);
   return out;
 }
-
