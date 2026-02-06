@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.3
+
+- Add Docker image publish to GHCR on releases (`ghcr.io/theodornengoy/mcp-safety-scanner:v0`).
+- Make npm publish step in release workflow conditional on `NPM_TOKEN` being set.
+
 ## v0.2.2
 
 - Prep npm publish: remove `private`, add `files` allowlist and package metadata.

@@ -14,6 +14,9 @@ npx mcp-safety-scan . --fail-on=high
 npm i -g mcp-safety-scan
 mcp-safety-scan . --fail-on=high
 
+# via Docker (no Node install)
+docker run --rm -v "$PWD:/repo" ghcr.io/theodornengoy/mcp-safety-scanner:v0 /repo --format=github --fail-on=high
+
 cd /Users/theodornengoy/Projects/mcp-safety-scanner
 npm test
 
@@ -71,7 +74,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.2
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.3
         with:
           path: .
           # baseline: .mcp-safety-baseline.json
@@ -82,7 +85,7 @@ jobs:
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.2
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.3
         id: scan
         with:
           path: .
