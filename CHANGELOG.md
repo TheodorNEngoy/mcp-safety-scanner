@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.5
+
+- Make npm publish in the release workflow best-effort: if `NPM_TOKEN` is set but invalid/expired, skip publish with a warning instead of failing the release.
+
 ## v0.2.4
 
 - Fix release workflow validation: GitHub Actions does not allow `secrets.*` in `if:` expressions, so the npm publish step now gates on an env var instead.

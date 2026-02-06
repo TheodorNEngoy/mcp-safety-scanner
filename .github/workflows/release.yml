@@ -32,6 +32,17 @@ jobs:
 
       - run: npm test
 
-      - name: Publish to npm
+      - name: Check npm auth
+        id: npm_auth
         if: ${{ env.NODE_AUTH_TOKEN }}
+        run: |
+          if npm whoami >/dev/null 2>&1; then
+            echo "can_publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "can_publish=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::NPM_TOKEN is set but auth failed; skipping npm publish."
+          fi
+
+      - name: Publish to npm
+        if: ${{ env.NODE_AUTH_TOKEN && steps.npm_auth.outputs.can_publish == 'true' }}
         run: npm publish --access public
