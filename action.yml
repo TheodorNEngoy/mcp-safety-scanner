@@ -11,6 +11,10 @@ inputs:
     description: Path to scan
     required: false
     default: .
+  baseline:
+    description: Baseline JSON file to ignore existing findings
+    required: false
+    default: ""
   format:
     description: Output format (text, json, sarif, github)
     required: false
@@ -35,6 +39,7 @@ runs:
       run: ${{ github.action_path }}/scripts/github-action.sh
       env:
         INPUT_PATH: ${{ inputs.path }}
+        INPUT_BASELINE: ${{ inputs.baseline }}
         INPUT_FORMAT: ${{ inputs.format }}
         INPUT_FAIL_ON: ${{ inputs['fail-on'] }}
         INPUT_SARIF_OUTPUT: ${{ inputs['sarif-output'] }}

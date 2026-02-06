@@ -24,6 +24,29 @@ node ./src/cli.js /path/to/repo --format=sarif > results.sarif
 
 # fail if >= medium findings exist
 node ./src/cli.js /path/to/repo --fail-on=medium
+
+# generate a baseline file (ignore existing findings)
+node ./src/cli.js /path/to/repo --write-baseline .mcp-safety-baseline.json
+
+# use a baseline file (only new findings remain)
+node ./src/cli.js /path/to/repo --baseline .mcp-safety-baseline.json --fail-on=high
+```
+
+## Suppressions
+
+Use comment directives sparingly (prefer fixing the underlying issue):
+
+```js
+// mcp-safety-scan ignore child-process-exec
+execSync("echo hello");
+
+// mcp-safety-scan ignore-next-line dangerous-eval
+eval(userInput);
+```
+
+```py
+# mcp-safety-scan ignore-next-line python-shell-exec
+subprocess.run(user_input, shell=True)
 ```
 
 ## GitHub Action
@@ -41,9 +64,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.0
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.1
         with:
           path: .
+          # baseline: .mcp-safety-baseline.json
           fail-on: high
           format: github
 ```
@@ -51,10 +75,11 @@ jobs:
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.0
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.1
         id: scan
         with:
           path: .
+          # baseline: .mcp-safety-baseline.json
           fail-on: none
           format: sarif
           sarif-output: mcp-safety.sarif

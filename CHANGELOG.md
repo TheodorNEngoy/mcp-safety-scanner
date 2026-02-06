@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.1
+
+- Add baseline support (`--baseline`, `--write-baseline`) for CI adoption in existing repos.
+- Add suppression comments (`mcp-safety-scan ignore` / `ignore-next-line`).
+- Add SARIF `partialFingerprints` for more stable code scanning results.
+
 ## v0.2.0
 
 - Scan Python and Go files by default (`.py`, `.go`).

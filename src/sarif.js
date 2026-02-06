@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import { RULES, severityRank } from "./rules.js";
+import { findingFingerprint } from "./baseline.js";
 
 function sarifLevelForSeverity(sev) {
   // SARIF levels: none | note | warning | error.
@@ -48,6 +49,9 @@ export function formatSarif({ root, findings }) {
       level,
       message: {
         text: `${f.title}${f.excerpt ? `: ${f.excerpt}` : ""}`,
+      },
+      partialFingerprints: {
+        "mcp-safety-scan/v1": findingFingerprint(f),
       },
       locations: [
         {

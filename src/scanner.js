@@ -6,6 +6,41 @@ import { collectCandidateFiles } from "./walk.js";
 
 const DEFAULT_MAX_FILE_BYTES = 1_000_000; // avoid scanning huge bundles
 
+function parseSuppressionDirective(line) {
+  // Examples:
+  //   // mcp-safety-scan ignore child-process-exec
+  //   # mcp-safety-scan ignore-next-line python-shell-exec
+  //   // mcp-safety-scan ignore
+  if (!line || !line.includes("mcp-safety-scan")) return null;
+  const m = line.match(/\bmcp-safety-scan\b\s*(?::\s*)?(ignore-next-line|ignore)\b\s*(.*)$/i);
+  if (!m) return null;
+  const cmd = String(m[1] ?? "").toLowerCase();
+  const rest = String(m[2] ?? "").trim();
+  const idsRaw = rest ? rest.split(/[,\s]+/).filter(Boolean) : ["*"];
+  const ids = idsRaw
+    .map((s) => s.replace(/[^a-z0-9_*.-]/gi, "").toLowerCase())
+    .filter(Boolean);
+  return { cmd, ids: ids.length ? ids : ["*"] };
+}
+
+function suppressionIdsMatch(ids, ruleId) {
+  const rid = String(ruleId ?? "").toLowerCase();
+  return ids.includes("*") || ids.includes("all") || ids.includes(rid);
+}
+
+function isLineSuppressedForRule(lines, i, ruleId) {
+  const line = lines[i] ?? "";
+  const prev = i > 0 ? lines[i - 1] : "";
+
+  const dSame = parseSuppressionDirective(line);
+  if (dSame && dSame.cmd === "ignore" && suppressionIdsMatch(dSame.ids, ruleId)) return true;
+
+  const dPrev = parseSuppressionDirective(prev);
+  if (dPrev && dPrev.cmd === "ignore-next-line" && suppressionIdsMatch(dPrev.ids, ruleId)) return true;
+
+  return false;
+}
+
 function isProbablyBinary(buf) {
   // Fast check: presence of NUL suggests binary.
   for (let i = 0; i < buf.length; i++) {
@@ -25,6 +60,7 @@ function scanTextByLines({ root, relPath, text, rule }) {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (isLineSuppressedForRule(lines, i, rule.id)) continue;
     for (const re of rule.patterns) {
       const idx = line.search(re);
       if (idx === -1) continue;
@@ -86,4 +122,3 @@ export async function scanPath(targetPath, { exts = DEFAULT_SCAN_EXTS, maxFileBy
 
   return { root, filesScanned: files.length, findings };
 }
-

@@ -6,10 +6,13 @@ import { parseArgs } from "node:util";
 import { scanPath } from "./scanner.js";
 import { severityRank } from "./rules.js";
 import { formatText, summarize } from "./format.js";
+import { applyBaseline, loadBaseline, writeBaseline } from "./baseline.js";
 
 const HELP = `
 Usage:
   mcp-safety-scan [path] [--format=json|text|sarif|github] [--fail-on=high|medium|low|info|none]
+  mcp-safety-scan [path] --baseline=baseline.json
+  mcp-safety-scan [path] --write-baseline=baseline.json
 
 Examples:
   mcp-safety-scan .
@@ -17,6 +20,7 @@ Examples:
   mcp-safety-scan /path/to/repo --format=sarif > results.sarif
   mcp-safety-scan /path/to/repo --format=github
   mcp-safety-scan /path/to/repo --fail-on=medium
+  mcp-safety-scan /path/to/repo --write-baseline .mcp-safety-baseline.json
 `.trim();
 
 function parseFailOn(v) {
@@ -33,6 +37,8 @@ const { values, positionals } = parseArgs({
     help: { type: "boolean", short: "h" },
     format: { type: "string" },
     "fail-on": { type: "string" },
+    baseline: { type: "string" },
+    "write-baseline": { type: "string" },
   },
   allowPositionals: true,
 });
@@ -59,7 +65,44 @@ if (format !== "text" && format !== "json" && format !== "sarif" && format !== "
   process.exit();
 }
 
-const result = await scanPath(target);
+const baselinePath = values.baseline ? String(values.baseline) : "";
+const writeBaselinePath = values["write-baseline"] ? String(values["write-baseline"]) : "";
+
+if (baselinePath && writeBaselinePath) {
+  console.error("Invalid usage: do not combine --baseline with --write-baseline.");
+  process.exitCode = 2;
+  process.exit();
+}
+
+const resultRaw = await scanPath(target);
+
+let baselineSet = null;
+if (baselinePath) {
+  try {
+    baselineSet = await loadBaseline(baselinePath);
+  } catch (e) {
+    const msg = e && typeof e.message === "string" ? e.message : String(e);
+    console.error(`Failed to load baseline: ${msg}`);
+    process.exitCode = 2;
+    process.exit();
+  }
+}
+
+const result = {
+  ...resultRaw,
+  findings: baselineSet ? applyBaseline(resultRaw.findings, baselineSet) : resultRaw.findings,
+};
+
+if (writeBaselinePath) {
+  try {
+    await writeBaseline(writeBaselinePath, resultRaw);
+  } catch (e) {
+    const msg = e && typeof e.message === "string" ? e.message : String(e);
+    console.error(`Failed to write baseline: ${msg}`);
+    process.exitCode = 2;
+    process.exit();
+  }
+}
 
 if (format === "json") {
   const summary = summarize(result.findings);
@@ -85,7 +128,7 @@ if (format === "json") {
   console.log(formatText(result));
 }
 
-if (failOn !== "none") {
+if (!writeBaselinePath && failOn !== "none") {
   const threshold = severityRank(failOn);
   const has = result.findings.some((f) => severityRank(f.severity) >= threshold);
   if (has) process.exitCode = 1;

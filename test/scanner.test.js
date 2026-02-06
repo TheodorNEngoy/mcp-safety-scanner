@@ -1,10 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
+import fs from "node:fs/promises";
 
 import { scanPath } from "../src/scanner.js";
 import { formatSarif } from "../src/sarif.js";
 import { formatGithub } from "../src/github.js";
+import { applyBaseline, loadBaseline, writeBaseline } from "../src/baseline.js";
 
 test("detects wildcard and reflected CORS", async () => {
   const fixtures = path.resolve("test/fixtures");
@@ -45,6 +47,32 @@ test("does not flag RegExp .exec() as child_process exec()", async () => {
 
   const bad = res.findings.filter((f) => f.file === "regex-exec.js" && f.ruleId === "child-process-exec");
   assert.equal(bad.length, 0);
+});
+
+test("supports suppression comments", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures);
+
+  const suppressed = res.findings.filter((f) => f.file === "suppressed-eval.js" && f.ruleId === "dangerous-eval");
+  assert.equal(suppressed.length, 0);
+
+  const stillDetected = res.findings.filter((f) => f.file === "eval.js" && f.ruleId === "dangerous-eval");
+  assert.ok(stillDetected.length >= 1);
+});
+
+test("baseline filters known findings", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures);
+
+  const baselinePath = path.resolve("test/tmp-baseline.json");
+  try {
+    await writeBaseline(baselinePath, res);
+    const set = await loadBaseline(baselinePath);
+    const filtered = applyBaseline(res.findings, set);
+    assert.equal(filtered.length, 0);
+  } finally {
+    await fs.unlink(baselinePath).catch(() => {});
+  }
 });
 
 test("sarif format is valid JSON and includes results", async () => {
