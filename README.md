@@ -7,6 +7,13 @@ This is a heuristic scanner. It is meant to catch obvious mistakes fast (especia
 ## Install / Run
 
 ```bash
+# via npx (no install)
+npx mcp-safety-scan . --fail-on=high
+
+# install globally
+npm i -g mcp-safety-scan
+mcp-safety-scan . --fail-on=high
+
 cd /Users/theodornengoy/Projects/mcp-safety-scanner
 npm test
 
@@ -64,7 +71,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.1
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.2
         with:
           path: .
           # baseline: .mcp-safety-baseline.json
@@ -75,7 +82,7 @@ jobs:
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.1
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.2
         id: scan
         with:
           path: .

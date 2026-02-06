@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.2
+
+- Prep npm publish: remove `private`, add `files` allowlist and package metadata.
+- Rename npm package to `mcp-safety-scan` (CLI remains `mcp-safety-scan`).
+
 ## v0.2.1
 
 - Add baseline support (`--baseline`, `--write-baseline`) for CI adoption in existing repos.
