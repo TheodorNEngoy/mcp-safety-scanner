@@ -73,7 +73,7 @@ export function formatSarif({ root, findings }) {
         tool: {
           driver: {
             name: "mcp-safety-scanner",
-            informationUri: "https://example.invalid/mcp-safety-scanner",
+            informationUri: "https://github.com/TheodorNEngoy/mcp-safety-scanner",
             rules: sarifRules,
           },
         },
@@ -87,4 +87,3 @@ export function formatSarif({ root, findings }) {
     ],
   };
 }
-
