@@ -74,7 +74,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.3
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.4
         with:
           path: .
           # baseline: .mcp-safety-baseline.json
@@ -85,7 +85,7 @@ jobs:
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.3
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.4
         id: scan
         with:
           path: .

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.4
+
+- Fix release workflow validation: GitHub Actions does not allow `secrets.*` in `if:` expressions, so the npm publish step now gates on an env var instead.
+
 ## v0.2.3
 
 - Add Docker image publish to GHCR on releases (`ghcr.io/theodornengoy/mcp-safety-scanner:v0`).
