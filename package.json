@@ -1,0 +1,22 @@
+{
+  "name": "mcp-safety-scanner",
+  "version": "0.1.0",
+  "description": "Dependency-free CLI to scan JS/TS repos for common MCP/tool-server security footguns (CORS, eval, exec, etc.)",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheodorNEngoy/mcp-safety-scanner"
+  },
+  "bin": {
+    "mcp-safety-scan": "./src/cli.js"
+  },
+  "scripts": {
+    "scan": "node ./src/cli.js",
+    "test": "node --test test/scanner.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
