@@ -1,5 +1,10 @@
 name: MCP Safety Scan
 description: Scan JS/TS repos for common MCP/tool-server security footguns (CORS, eval, exec, etc.)
+author: Theodor N. Engøy
+
+branding:
+  icon: shield
+  color: blue
 
 inputs:
   path:
@@ -33,4 +38,3 @@ runs:
         INPUT_FORMAT: ${{ inputs.format }}
         INPUT_FAIL_ON: ${{ inputs['fail-on'] }}
         INPUT_SARIF_OUTPUT: ${{ inputs['sarif-output'] }}
-
