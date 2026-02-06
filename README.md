@@ -72,6 +72,8 @@ SARIF upload (optional, requires permissions in some orgs):
 - Suspicious file deletion (`rmSync(` / `unlinkSync(`)
 - Logging request headers (`console.log(req.headers...)`)
 
+File types scanned: `.js`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.jsx`, `.mts`, `.cts`, `.gs` (Google Apps Script).
+
 ## Exit Codes
 
 - `0`: No findings at or above your `--fail-on` threshold

@@ -10,7 +10,7 @@ export function severityRank(sev) {
   return SEVERITY_ORDER[sev] ?? -1;
 }
 
-const JS_TS_EXTS = Object.freeze([".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx"]);
+const JS_TS_EXTS = Object.freeze([".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".mts", ".cts", ".gs"]);
 
 function rule({ id, severity, title, description, exts = JS_TS_EXTS, patterns }) {
   return Object.freeze({ id, severity, title, description, exts, patterns });
