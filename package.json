@@ -1,6 +1,6 @@
 {
   "name": "mcp-safety-scanner",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Dependency-free CLI to scan JS/TS repos for common MCP/tool-server security footguns (CORS, eval, exec, etc.)",
   "private": true,
   "type": "module",

@@ -9,6 +9,15 @@ FORMAT="${INPUT_FORMAT:-github}"
 FAIL_ON="${INPUT_FAIL_ON:-high}"
 SARIF_OUTPUT="${INPUT_SARIF_OUTPUT:-mcp-safety-scan.sarif}"
 
+# Interpret relative paths as relative to the checked-out repository, not the action repo.
+WORKSPACE="${GITHUB_WORKSPACE:-$(pwd)}"
+if [[ "${TARGET_PATH}" != /* ]]; then
+  TARGET_PATH="${WORKSPACE}/${TARGET_PATH}"
+fi
+if [[ "${SARIF_OUTPUT}" != /* ]]; then
+  SARIF_OUTPUT="${WORKSPACE}/${SARIF_OUTPUT}"
+fi
+
 cd "$ROOT"
 
 if [[ "$FORMAT" == "sarif" ]]; then
@@ -19,4 +28,3 @@ if [[ "$FORMAT" == "sarif" ]]; then
 else
   node "$ROOT/src/cli.js" "$TARGET_PATH" --format="$FORMAT" --fail-on="$FAIL_ON"
 fi
-

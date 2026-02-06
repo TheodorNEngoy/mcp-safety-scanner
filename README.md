@@ -28,7 +28,7 @@ node ./src/cli.js /path/to/repo --fail-on=medium
 
 ## GitHub Action
 
-Add this to a workflow (pins to a tag you create, e.g. `v0.1.0`):
+Add this to a workflow (pin to a release tag like `v0.1.1`, or use `v0` to track the latest `v0.x`):
 
 ```yaml
 name: safety-scan
@@ -41,7 +41,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.1.0
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.1.1
         with:
           path: .
           fail-on: high
@@ -51,7 +51,7 @@ jobs:
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.1.0
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.1.1
         id: scan
         with:
           path: .
