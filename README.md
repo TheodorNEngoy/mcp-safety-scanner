@@ -26,6 +26,43 @@ node ./src/cli.js /path/to/repo --format=sarif > results.sarif
 node ./src/cli.js /path/to/repo --fail-on=medium
 ```
 
+## GitHub Action
+
+Add this to a workflow (pins to a tag you create, e.g. `v0.1.0`):
+
+```yaml
+name: safety-scan
+on: [pull_request]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.1.0
+        with:
+          path: .
+          fail-on: high
+          format: github
+```
+
+SARIF upload (optional, requires permissions in some orgs):
+
+```yaml
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.1.0
+        id: scan
+        with:
+          path: .
+          fail-on: none
+          format: sarif
+          sarif-output: mcp-safety.sarif
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: mcp-safety.sarif
+```
+
 ## What It Flags (Initial Rules)
 
 - Wildcard CORS (`Access-Control-Allow-Origin: *`, `cors({ origin: "*" })`)
@@ -40,19 +77,3 @@ node ./src/cli.js /path/to/repo --fail-on=medium
 - `0`: No findings at or above your `--fail-on` threshold
 - `1`: Findings at or above threshold found
 - `2`: CLI usage error
-
-## GitHub Actions (Minimal)
-
-```yaml
-name: safety-scan
-on: [pull_request]
-jobs:
-  scan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: node /path/to/mcp-safety-scanner/src/cli.js . --fail-on=high
-```

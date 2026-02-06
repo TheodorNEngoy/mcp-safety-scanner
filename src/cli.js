@@ -9,12 +9,13 @@ import { formatText, summarize } from "./format.js";
 
 const HELP = `
 Usage:
-  mcp-safety-scan [path] [--format=json|text|sarif] [--fail-on=high|medium|low|info|none]
+  mcp-safety-scan [path] [--format=json|text|sarif|github] [--fail-on=high|medium|low|info|none]
 
 Examples:
   mcp-safety-scan .
   mcp-safety-scan /path/to/repo --format=json
   mcp-safety-scan /path/to/repo --format=sarif > results.sarif
+  mcp-safety-scan /path/to/repo --format=github
   mcp-safety-scan /path/to/repo --fail-on=medium
 `.trim();
 
@@ -52,8 +53,8 @@ if (!failOn) {
   process.exit();
 }
 
-if (format !== "text" && format !== "json" && format !== "sarif") {
-  console.error("Invalid --format. Use: text, json, or sarif.");
+if (format !== "text" && format !== "json" && format !== "sarif" && format !== "github") {
+  console.error("Invalid --format. Use: text, json, sarif, or github.");
   process.exitCode = 2;
   process.exit();
 }
@@ -77,6 +78,9 @@ if (format === "json") {
 } else if (format === "sarif") {
   const { formatSarif } = await import("./sarif.js");
   console.log(JSON.stringify(formatSarif(result), null, 2));
+} else if (format === "github") {
+  const { formatGithub } = await import("./github.js");
+  console.log(formatGithub(result));
 } else {
   console.log(formatText(result));
 }

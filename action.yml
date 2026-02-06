@@ -1,0 +1,36 @@
+name: MCP Safety Scan
+description: Scan JS/TS repos for common MCP/tool-server security footguns (CORS, eval, exec, etc.)
+
+inputs:
+  path:
+    description: Path to scan
+    required: false
+    default: .
+  format:
+    description: Output format (text, json, sarif, github)
+    required: false
+    default: github
+  fail-on:
+    description: Fail threshold (critical, high, medium, low, info, none)
+    required: false
+    default: high
+  sarif-output:
+    description: SARIF filename (only used when format=sarif)
+    required: false
+    default: mcp-safety-scan.sarif
+
+outputs:
+  sarif_file:
+    description: Path to the SARIF file (only set when format=sarif)
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: ${{ github.action_path }}/scripts/github-action.sh
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_FORMAT: ${{ inputs.format }}
+        INPUT_FAIL_ON: ${{ inputs['fail-on'] }}
+        INPUT_SARIF_OUTPUT: ${{ inputs['sarif-output'] }}
+

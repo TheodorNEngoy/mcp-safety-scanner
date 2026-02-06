@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { scanPath } from "../src/scanner.js";
 import { formatSarif } from "../src/sarif.js";
+import { formatGithub } from "../src/github.js";
 
 test("detects wildcard and reflected CORS", async () => {
   const fixtures = path.resolve("test/fixtures");
@@ -39,4 +40,13 @@ test("sarif format is valid JSON and includes results", async () => {
   assert.ok(sarif.runs.length >= 1);
   assert.ok(Array.isArray(sarif.runs[0].results));
   assert.ok(sarif.runs[0].results.length >= 1);
+});
+
+test("github format produces workflow commands", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures);
+  const out = formatGithub(res);
+
+  assert.ok(out.includes("::error") || out.includes("::warning") || out.includes("::notice"));
+  assert.ok(out.includes("cors-wildcard-origin") || out.includes("dangerous-eval"));
 });
