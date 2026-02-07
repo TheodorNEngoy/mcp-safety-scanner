@@ -54,8 +54,23 @@ function ruleAppliesToFile(rule, filePath) {
   return !rule.exts || rule.exts.includes(ext);
 }
 
-function isTestFile(fileAbs) {
-  const base = path.basename(fileAbs).toLowerCase();
+function isTestFile({ root, fileAbs }) {
+  const rel = path.relative(root, fileAbs);
+  const parts = rel.split(/[\\/]+/).filter(Boolean);
+  if (!parts.length) return false;
+  if (parts[0] === "..") return false; // outside root
+
+  // If the file lives under a known test/fixture directory, treat it as a test
+  // file for noise reduction (unless --include-tests is set).
+  //
+  // This intentionally uses *relative* paths so scanning subdirectories like
+  // "test/fixtures" still works as expected.
+  const testDirs = new Set(["test", "tests", "__tests__", "__mocks__", "fixtures", "__fixtures__"]);
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (testDirs.has(String(parts[i]).toLowerCase())) return true;
+  }
+
+  const base = String(parts[parts.length - 1]).toLowerCase();
   if (base.endsWith("_test.go")) return true;
   if (base.startsWith("test_") && base.endsWith(".py")) return true;
   if (base.endsWith("_test.py")) return true;
@@ -168,7 +183,7 @@ export async function scanPath(
     Array.isArray(files)
       ? normalizeFileList({ root, files, exts, ignoreDirs })
       : await collectCandidateFiles(root, { exts, extraIgnoreDirs });
-  const candidateFiles = includeTests ? candidates : candidates.filter((p) => !isTestFile(p));
+  const candidateFiles = includeTests ? candidates : candidates.filter((p) => !isTestFile({ root, fileAbs: p }));
   const findings = [];
 
   for (const fileAbs of candidateFiles) {

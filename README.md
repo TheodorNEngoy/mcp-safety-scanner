@@ -77,6 +77,7 @@ By default, the scanner skips common test file name patterns to reduce noise:
 - `*.test.*`, `*.spec.*`
 - `*_test.go`
 - `test_*.py`, `*_test.py`
+- files under `test/`, `tests/`, `__tests__/`, `__mocks__/`, `fixtures/`, `__fixtures__/`
 
 Use `--include-tests` (CLI) or `include-tests: "true"` (GitHub Action input) to include them.
 
