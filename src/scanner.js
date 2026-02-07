@@ -69,6 +69,7 @@ function scanTextByLines({ root, relPath, text, rule }) {
         ruleId: rule.id,
         severity: rule.severity,
         title: rule.title,
+        help: rule.help || "",
         file: relPath,
         line: i + 1,
         column: idx + 1,

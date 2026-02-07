@@ -28,6 +28,8 @@ export function formatSarif({ root, findings }) {
     name: r.title,
     shortDescription: { text: r.title },
     fullDescription: { text: r.description },
+    help: r.help ? { text: r.help } : undefined,
+    helpUri: "https://github.com/TheodorNEngoy/mcp-safety-scanner/blob/main/docs/MCP_SECURITY_BASELINE.md",
     properties: { severity: r.severity },
   }));
 

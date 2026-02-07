@@ -74,7 +74,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.5
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.6
         with:
           path: .
           # baseline: .mcp-safety-baseline.json
@@ -82,10 +82,21 @@ jobs:
           format: github
 ```
 
+If you prefer not to depend on a third-party Action in your CI, you can run the scanner via Docker instead:
+
+```yaml
+      - uses: actions/checkout@v4
+      - name: MCP safety scan (docker)
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE:/repo" \\
+            ghcr.io/theodornengoy/mcp-safety-scanner:v0 \\
+            /repo --format=github --fail-on=high
+```
+
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.5
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.6
         id: scan
         with:
           path: .

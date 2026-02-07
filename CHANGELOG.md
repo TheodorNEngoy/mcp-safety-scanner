@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.6
+
+- Add remediation hints ("Fix: ...") to findings in text/github/SARIF outputs to make results more actionable.
+- Document a Docker-based CI integration option (no GitHub Action dependency).
+
 ## v0.2.5
 
 - Make npm publish in the release workflow best-effort: if `NPM_TOKEN` is set but invalid/expired, skip publish with a warning instead of failing the release.

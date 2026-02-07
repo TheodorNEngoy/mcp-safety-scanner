@@ -23,8 +23,8 @@ export function formatText({ root, filesScanned, findings }) {
     parts.push(`[${f.severity}] ${f.ruleId} ${f.title}`);
     parts.push(`  ${loc}`);
     if (f.excerpt) parts.push(`  ${f.excerpt}`);
+    if (f.help) parts.push(`  help: ${String(f.help).trim()}`);
   }
 
   return parts.join("\n");
 }
-
