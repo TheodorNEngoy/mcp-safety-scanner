@@ -40,6 +40,9 @@ node ./src/cli.js /path/to/repo --write-baseline .mcp-safety-baseline.json
 
 # use a baseline file (only new findings remain)
 node ./src/cli.js /path/to/repo --baseline .mcp-safety-baseline.json --fail-on=high
+
+# ignore additional directories (by basename)
+node ./src/cli.js /path/to/repo --ignore-dir=test --ignore-dir=__tests__
 ```
 
 ## Suppressions
@@ -74,10 +77,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.7
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.8
         with:
           path: .
           # baseline: .mcp-safety-baseline.json
+          # ignore-dirs: test,__tests__
           fail-on: high
           format: github
 ```
@@ -96,11 +100,12 @@ If you prefer not to depend on a third-party Action in your CI, you can run the 
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.7
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.8
         id: scan
         with:
           path: .
           # baseline: .mcp-safety-baseline.json
+          # ignore-dirs: test,__tests__
           fail-on: none
           format: sarif
           sarif-output: mcp-safety.sarif
@@ -114,6 +119,7 @@ SARIF upload (optional, requires permissions in some orgs):
 - Wildcard CORS (`Access-Control-Allow-Origin: *`, `cors({ origin: "*" })`)
 - Reflected CORS origin (`... = req.headers.origin`)
 - CORS middleware defaults (e.g. `cors()` with no origin restrictions, `CORS(app)` in Python)
+- Binding to all interfaces (`0.0.0.0` / `::`) (public network exposure)
 - Dangerous code execution (`eval(`, `new Function(`, Python `exec(`)
 - Shell execution (Node `child_process.exec*`, Python `subprocess(..., shell=True)`, Go `exec.Command("sh", "-c", ...)`)
 - Suspicious file deletion (`rmSync(` / `unlinkSync(`)

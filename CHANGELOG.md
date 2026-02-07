@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.8
+
+- Flag servers that explicitly bind to all interfaces (`0.0.0.0` / `::`) as a high-severity public exposure footgun.
+- Add `--ignore-dir` (CLI) / `ignore-dirs` (GitHub Action input) to reduce noise from directories like `test/` and `__tests__/`.
+
 ## v0.2.7
 
 - Flag `cors({ origin: true })` as reflected CORS origin (common Node/Express footgun).

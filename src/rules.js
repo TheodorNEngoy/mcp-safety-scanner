@@ -87,6 +87,35 @@ export const RULES = Object.freeze([
   }),
 
   rule({
+    id: "bind-all-interfaces",
+    severity: "high",
+    title: "Server binds to all interfaces (0.0.0.0 / ::)",
+    description:
+      "Binding to 0.0.0.0/:: exposes the server to the network. For MCP/tool servers, prefer binding to localhost by default and making public binding an explicit opt-in.",
+    help: "Fix: default to 127.0.0.1/localhost; require an explicit env var/flag to bind to 0.0.0.0/::.",
+    exts: null,
+    patterns: [
+      // JS/TS (Node/Express/Hono/Deno)
+      /\blisten\s*\([^\n]*["']0\.0\.0\.0["']/,
+      /\blisten\s*\([^\n]*["']::["']/,
+      /\b(hostname|host)\s*:\s*["']0\.0\.0\.0["']/,
+      /\b(hostname|host)\s*:\s*["']::["']/,
+
+      // Python (uvicorn/FastAPI/Flask)
+      /\bhost\s*=\s*["']0\.0\.0\.0["']/,
+      /\bhost\s*=\s*["']::["']/,
+      /\b--host\s+0\.0\.0\.0\b/,
+      /\b--host\s+::\b/,
+
+      // Go (net/http, net.Listen)
+      /\bListenAndServe(?:TLS)?\s*\(\s*["']0\.0\.0\.0:/,
+      /\bListenAndServe(?:TLS)?\s*\(\s*["']\[\:\:\]/,
+      /\bnet\.Listen\s*\([^\n]*["']0\.0\.0\.0:/,
+      /\bnet\.Listen\s*\([^\n]*["']\[\:\:\]/,
+    ],
+  }),
+
+  rule({
     id: "dangerous-eval",
     severity: "critical",
     title: "Dynamic code execution (eval / new Function)",

@@ -22,7 +22,15 @@ const DEFAULT_IGNORE_DIRS = new Set([
   "vendor",
 ]);
 
-export async function collectCandidateFiles(rootPath, { exts, ignoreDirs = DEFAULT_IGNORE_DIRS, maxFiles = 50_000 } = {}) {
+export async function collectCandidateFiles(
+  rootPath,
+  { exts, ignoreDirs = DEFAULT_IGNORE_DIRS, extraIgnoreDirs = null, maxFiles = 50_000 } = {}
+) {
+  const ignore =
+    extraIgnoreDirs && extraIgnoreDirs.length
+      ? new Set([...ignoreDirs, ...extraIgnoreDirs].map((s) => String(s)))
+      : ignoreDirs;
+
   const out = [];
   const rootAbs = path.resolve(rootPath);
 
@@ -46,7 +54,7 @@ export async function collectCandidateFiles(rootPath, { exts, ignoreDirs = DEFAU
     if (!st.isDirectory()) return;
 
     const base = path.basename(p);
-    if (ignoreDirs.has(base)) return;
+    if (ignore.has(base)) return;
 
     let entries;
     try {

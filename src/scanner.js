@@ -82,9 +82,12 @@ function scanTextByLines({ root, relPath, text, rule }) {
   return findings;
 }
 
-export async function scanPath(targetPath, { exts = DEFAULT_SCAN_EXTS, maxFileBytes = DEFAULT_MAX_FILE_BYTES } = {}) {
+export async function scanPath(
+  targetPath,
+  { exts = DEFAULT_SCAN_EXTS, maxFileBytes = DEFAULT_MAX_FILE_BYTES, extraIgnoreDirs = null } = {}
+) {
   const root = path.resolve(targetPath);
-  const files = await collectCandidateFiles(root, { exts });
+  const files = await collectCandidateFiles(root, { exts, extraIgnoreDirs });
   const findings = [];
 
   for (const fileAbs of files) {

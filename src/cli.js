@@ -11,6 +11,7 @@ import { applyBaseline, loadBaseline, writeBaseline } from "./baseline.js";
 const HELP = `
 Usage:
   mcp-safety-scan [path] [--format=json|text|sarif|github] [--fail-on=high|medium|low|info|none]
+  mcp-safety-scan [path] [--ignore-dir=DIR]...
   mcp-safety-scan [path] --baseline=baseline.json
   mcp-safety-scan [path] --write-baseline=baseline.json
 
@@ -20,6 +21,7 @@ Examples:
   mcp-safety-scan /path/to/repo --format=sarif > results.sarif
   mcp-safety-scan /path/to/repo --format=github
   mcp-safety-scan /path/to/repo --fail-on=medium
+  mcp-safety-scan /path/to/repo --ignore-dir=test --ignore-dir=__tests__
   mcp-safety-scan /path/to/repo --write-baseline .mcp-safety-baseline.json
 `.trim();
 
@@ -37,6 +39,7 @@ const { values, positionals } = parseArgs({
     help: { type: "boolean", short: "h" },
     format: { type: "string" },
     "fail-on": { type: "string" },
+    "ignore-dir": { type: "string", multiple: true },
     baseline: { type: "string" },
     "write-baseline": { type: "string" },
   },
@@ -74,7 +77,12 @@ if (baselinePath && writeBaselinePath) {
   process.exit();
 }
 
-const resultRaw = await scanPath(target);
+const ignoreDirs = (values["ignore-dir"] ?? [])
+  .flatMap((v) => String(v ?? "").split(","))
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+const resultRaw = await scanPath(target, { extraIgnoreDirs: ignoreDirs.length ? ignoreDirs : null });
 
 let baselineSet = null;
 if (baselinePath) {

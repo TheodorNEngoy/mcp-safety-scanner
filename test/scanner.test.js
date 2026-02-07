@@ -31,6 +31,24 @@ test("detects python and go footguns", async () => {
   assert.ok(ruleIds.has("go-shell-exec"));
 });
 
+test("detects public network binding (0.0.0.0 / ::)", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures);
+
+  const ruleIds = new Set(res.findings.map((f) => f.ruleId));
+  assert.ok(ruleIds.has("bind-all-interfaces"));
+
+  assert.ok(res.findings.some((f) => f.file === "bind-public.js" && f.ruleId === "bind-all-interfaces"));
+  assert.ok(res.findings.some((f) => f.file === "bind-public.py" && f.ruleId === "bind-all-interfaces"));
+  assert.ok(res.findings.some((f) => f.file === "bind-public.go" && f.ruleId === "bind-all-interfaces"));
+});
+
+test("supports extra ignore dirs", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures, { extraIgnoreDirs: ["ignored"] });
+  assert.ok(!res.findings.some((f) => String(f.file).split(/[\\\\/]/)[0] === "ignored"));
+});
+
 test("ignores node_modules by default", async () => {
   const fixtures = path.resolve("test/fixtures");
   const res = await scanPath(fixtures);

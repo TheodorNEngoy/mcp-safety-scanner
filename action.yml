@@ -15,6 +15,10 @@ inputs:
     description: Baseline JSON file to ignore existing findings
     required: false
     default: ""
+  ignore-dirs:
+    description: Comma-separated list of directory basenames to ignore (e.g. test,__tests__,fixtures)
+    required: false
+    default: ""
   format:
     description: Output format (text, json, sarif, github)
     required: false
@@ -40,6 +44,7 @@ runs:
       env:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_BASELINE: ${{ inputs.baseline }}
+        INPUT_IGNORE_DIRS: ${{ inputs['ignore-dirs'] }}
         INPUT_FORMAT: ${{ inputs.format }}
         INPUT_FAIL_ON: ${{ inputs['fail-on'] }}
         INPUT_SARIF_OUTPUT: ${{ inputs['sarif-output'] }}
