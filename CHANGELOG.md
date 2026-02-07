@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.7
+
+- Flag `cors({ origin: true })` as reflected CORS origin (common Node/Express footgun).
+- Flag `AllowAllOrigins: true` (gin-contrib/cors) as wildcard CORS.
+
 ## v0.2.6
 
 - Add remediation hints ("Fix: ...") to findings in text/github/SARIF outputs to make results more actionable.

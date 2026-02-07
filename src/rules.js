@@ -42,6 +42,7 @@ export const RULES = Object.freeze([
       // Go (gin-contrib/cors, rs/cors, echo, etc.)
       /\bAllowOrigins\s*:\s*\[\]string\s*\{[^}]*["']\*["'][^}]*\}/,
       /\bAllowedOrigins\s*:\s*\[\]string\s*\{[^}]*["']\*["'][^}]*\}/,
+      /\bAllowAllOrigins\s*:\s*true\b/,
     ],
   }),
 
@@ -56,6 +57,9 @@ export const RULES = Object.freeze([
     patterns: [
       /Access-Control-Allow-Origin[^\n]*(req\.headers\.origin|request\.headers\.origin)/i,
       /setHeader\(\s*["']Access-Control-Allow-Origin["'][^\n]*(req\.headers\.origin|request\.headers\.origin)/i,
+
+      // Node cors() package
+      /\bcors\s*\(\s*\{[^}]*\borigin\s*:\s*true\b/i,
 
       // Python (Flask/FastAPI/etc.)
       /Access-Control-Allow-Origin[^\n]*(headers\.get\(\s*["']origin["']\s*\)|headers\[\s*["']origin["']\s*\])/i,
