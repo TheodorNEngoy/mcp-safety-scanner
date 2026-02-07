@@ -77,7 +77,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.8
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.9
         with:
           path: .
           # baseline: .mcp-safety-baseline.json
@@ -100,7 +100,7 @@ If you prefer not to depend on a third-party Action in your CI, you can run the 
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.8
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.9
         id: scan
         with:
           path: .

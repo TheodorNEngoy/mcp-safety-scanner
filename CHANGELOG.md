@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.9
+
+- Reduce false positives by skipping comment-only lines and block comments when scanning.
+
 ## v0.2.8
 
 - Flag servers that explicitly bind to all interfaces (`0.0.0.0` / `::`) as a high-severity public exposure footgun.

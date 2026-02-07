@@ -57,9 +57,24 @@ function ruleAppliesToFile(rule, filePath) {
 function scanTextByLines({ root, relPath, text, rule }) {
   const findings = [];
   const lines = text.split(/\r?\n/);
+  let inBlockComment = false;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+
+    // Reduce obvious false positives from docs/comments.
+    // This is heuristic and intentionally simple (line-based scanner).
+    const trimmed = line.trimStart();
+    if (inBlockComment) {
+      if (trimmed.includes("*/")) inBlockComment = false;
+      continue;
+    }
+    if (trimmed.startsWith("/*")) {
+      if (!trimmed.includes("*/")) inBlockComment = true;
+      continue;
+    }
+    if (trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
+
     if (isLineSuppressedForRule(lines, i, rule.id)) continue;
     for (const re of rule.patterns) {
       const idx = line.search(re);
