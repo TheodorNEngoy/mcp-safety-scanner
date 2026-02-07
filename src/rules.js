@@ -183,6 +183,42 @@ export const RULES = Object.freeze([
   }),
 
   rule({
+    id: "web-request-json-no-limit",
+    severity: "medium",
+    title: "Web-standard Request.json() without explicit size limit",
+    description:
+      "`Request.json()` reads the full request body into memory. For networked MCP/tool servers, enforce a max request size (check Content-Length and/or stream with a byte limit) and return 413 when exceeded.",
+    help: "Fix: enforce a request body size limit before calling Request.json(); return 413 Payload Too Large when exceeded.",
+    patterns: [/\bawait\s+(?:req|request)\.json\s*\(\s*\)/],
+  }),
+
+  rule({
+    id: "python-request-body-no-limit",
+    severity: "medium",
+    title: "Python request.body()/request.json() without explicit size limit",
+    description:
+      "`await request.body()` / `await request.json()` reads the full request body into memory. For networked MCP/tool servers, enforce a max request size (check Content-Length and/or stream with a byte limit) and return 413 when exceeded.",
+    help: "Fix: enforce a request body size limit before reading/parsing; return 413 Payload Too Large when exceeded.",
+    exts: PY_EXTS,
+    patterns: [/\bawait\s+(?:req|request)\.(?:body|json)\s*\(\s*\)/],
+  }),
+
+  rule({
+    id: "go-readall-request-body-no-limit",
+    severity: "medium",
+    title: "Go io.ReadAll(request.Body) without explicit size limit",
+    description:
+      "`io.ReadAll(r.Body)` reads the entire request body into memory. Use `http.MaxBytesReader` (net/http) or a streaming/limit approach to enforce a maximum request size and return 413 when exceeded.",
+    help: "Fix: enforce a max body size (e.g. http.MaxBytesReader) before io.ReadAll; return 413 Payload Too Large when exceeded.",
+    exts: GO_EXTS,
+    patterns: [
+      /\b(?:io|ioutil)\.ReadAll\s*\(\s*(?:r|req|request)\.Body\s*\)/,
+      /\b(?:io|ioutil)\.ReadAll\s*\(\s*c\.Request\.Body\s*\)/,
+      /\b(?:io|ioutil)\.ReadAll\s*\(\s*c\.Request\(\)\.Body\s*\)/,
+    ],
+  }),
+
+  rule({
     id: "python-exec",
     severity: "critical",
     title: "Dynamic code execution (Python exec)",

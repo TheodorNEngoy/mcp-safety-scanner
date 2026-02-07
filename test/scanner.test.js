@@ -28,7 +28,9 @@ test("detects python and go footguns", async () => {
   const ruleIds = new Set(res.findings.map((f) => f.ruleId));
   assert.ok(ruleIds.has("python-exec"));
   assert.ok(ruleIds.has("python-shell-exec"));
+  assert.ok(ruleIds.has("python-request-body-no-limit"));
   assert.ok(ruleIds.has("go-shell-exec"));
+  assert.ok(ruleIds.has("go-readall-request-body-no-limit"));
 });
 
 test("detects public network binding (0.0.0.0 / ::)", async () => {
@@ -41,6 +43,13 @@ test("detects public network binding (0.0.0.0 / ::)", async () => {
   assert.ok(res.findings.some((f) => f.file === "bind-public.js" && f.ruleId === "bind-all-interfaces"));
   assert.ok(res.findings.some((f) => f.file === "bind-public.py" && f.ruleId === "bind-all-interfaces"));
   assert.ok(res.findings.some((f) => f.file === "bind-public.go" && f.ruleId === "bind-all-interfaces"));
+});
+
+test("detects web-standard Request.json() unbounded reads", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures);
+
+  assert.ok(res.findings.some((f) => f.file === "web-request-json.js" && f.ruleId === "web-request-json-no-limit"));
 });
 
 test("skips common test file patterns by default (use includeTests to include)", async () => {

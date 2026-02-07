@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.2
+
+- Add request-body size limit heuristics:
+  - Web-standard `await request.json()` reads
+  - Python `await request.body()` / `await request.json()` reads
+  - Go `io.ReadAll(r.Body)` reads
+- Document `npx`/`npm i -g` installation via GitHub (no npm publish required).
+
 ## v0.3.1
 
 - Skip common test file name patterns by default (e.g. `*.test.*`, `*.spec.*`, `*_test.go`, `test_*.py`). Use `--include-tests` / `include-tests: "true"` to include them.
