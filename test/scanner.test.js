@@ -43,6 +43,21 @@ test("detects public network binding (0.0.0.0 / ::)", async () => {
   assert.ok(res.findings.some((f) => f.file === "bind-public.go" && f.ruleId === "bind-all-interfaces"));
 });
 
+test("supports scanning an explicit file list", async () => {
+  const fixtures = path.resolve("test/fixtures");
+
+  const res = await scanPath(fixtures, { files: ["cors-origin-true.js"] });
+  assert.equal(res.filesScanned, 1);
+  assert.ok(res.findings.length >= 1);
+  assert.ok(res.findings.every((f) => f.file === "cors-origin-true.js"));
+  assert.ok(res.findings.some((f) => f.ruleId === "cors-reflect-origin"));
+
+  const res2 = await scanPath(fixtures, { files: ["eval.js", "ignored/eval.js"], extraIgnoreDirs: ["ignored"] });
+  assert.equal(res2.filesScanned, 1);
+  assert.ok(res2.findings.some((f) => f.file === "eval.js"));
+  assert.ok(!res2.findings.some((f) => String(f.file).split(/[\\\\/]/)[0] === "ignored"));
+});
+
 test("supports extra ignore dirs", async () => {
   const fixtures = path.resolve("test/fixtures");
   const res = await scanPath(fixtures, { extraIgnoreDirs: ["ignored"] });

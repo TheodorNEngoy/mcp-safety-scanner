@@ -2,7 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 
 import { RULES, severityRank, DEFAULT_SCAN_EXTS } from "./rules.js";
-import { collectCandidateFiles } from "./walk.js";
+import { collectCandidateFiles, DEFAULT_IGNORE_DIRS } from "./walk.js";
 
 const DEFAULT_MAX_FILE_BYTES = 1_000_000; // avoid scanning huge bundles
 
@@ -54,6 +54,47 @@ function ruleAppliesToFile(rule, filePath) {
   return !rule.exts || rule.exts.includes(ext);
 }
 
+function isInIgnoredDir({ root, fileAbs, ignoreDirs }) {
+  const rel = path.relative(root, fileAbs);
+  const parts = rel.split(/[\\/]+/).filter(Boolean);
+  if (!parts.length) return false;
+
+  // If the file is outside the root, don't apply ignore-dirs heuristics.
+  if (parts[0] === "..") return false;
+
+  // Ignore based on any directory segment basename (not the file itself).
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (ignoreDirs.has(parts[i])) return true;
+  }
+  return false;
+}
+
+function normalizeFileList({ root, files, exts, ignoreDirs }) {
+  if (!files || !files.length) return [];
+
+  const out = [];
+  const seen = new Set();
+
+  for (const raw of files) {
+    const s = String(raw ?? "").trim();
+    if (!s) continue;
+    if (s.startsWith("#")) continue;
+
+    const abs = path.isAbsolute(s) ? path.resolve(s) : path.resolve(root, s);
+    if (seen.has(abs)) continue;
+    seen.add(abs);
+
+    const ext = path.extname(abs).toLowerCase();
+    if (exts && !exts.includes(ext)) continue;
+
+    if (ignoreDirs && isInIgnoredDir({ root, fileAbs: abs, ignoreDirs })) continue;
+
+    out.push(abs);
+  }
+
+  return out;
+}
+
 function scanTextByLines({ root, relPath, text, rule }) {
   const findings = [];
   const lines = text.split(/\r?\n/);
@@ -99,13 +140,21 @@ function scanTextByLines({ root, relPath, text, rule }) {
 
 export async function scanPath(
   targetPath,
-  { exts = DEFAULT_SCAN_EXTS, maxFileBytes = DEFAULT_MAX_FILE_BYTES, extraIgnoreDirs = null } = {}
+  { exts = DEFAULT_SCAN_EXTS, maxFileBytes = DEFAULT_MAX_FILE_BYTES, extraIgnoreDirs = null, files = null } = {}
 ) {
   const root = path.resolve(targetPath);
-  const files = await collectCandidateFiles(root, { exts, extraIgnoreDirs });
+  const ignoreDirs =
+    extraIgnoreDirs && extraIgnoreDirs.length
+      ? new Set([...DEFAULT_IGNORE_DIRS, ...extraIgnoreDirs.map((s) => String(s))])
+      : DEFAULT_IGNORE_DIRS;
+
+  const candidates =
+    Array.isArray(files)
+      ? normalizeFileList({ root, files, exts, ignoreDirs })
+      : await collectCandidateFiles(root, { exts, extraIgnoreDirs });
   const findings = [];
 
-  for (const fileAbs of files) {
+  for (const fileAbs of candidates) {
     let st;
     try {
       st = await fs.stat(fileAbs);
@@ -139,5 +188,5 @@ export async function scanPath(
     return (a.line ?? 0) - (b.line ?? 0);
   });
 
-  return { root, filesScanned: files.length, findings };
+  return { root, filesScanned: candidates.length, findings };
 }

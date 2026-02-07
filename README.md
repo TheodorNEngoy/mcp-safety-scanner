@@ -43,6 +43,10 @@ node ./src/cli.js /path/to/repo --baseline .mcp-safety-baseline.json --fail-on=h
 
 # ignore additional directories (by basename)
 node ./src/cli.js /path/to/repo --ignore-dir=test --ignore-dir=__tests__
+
+# scan only files listed in a text file (one per line, relative to the scan path)
+git diff --name-only origin/main...HEAD > changed-files.txt
+node ./src/cli.js . --files-from changed-files.txt
 ```
 
 ## Suppressions
@@ -77,11 +81,29 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.9
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.3.0
         with:
           path: .
+          # files-from: changed-files.txt
           # baseline: .mcp-safety-baseline.json
           # ignore-dirs: test,__tests__
+          fail-on: high
+          format: github
+```
+
+Scan only changed files in PRs (optional, reduces noise):
+
+```yaml
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Compute changed files
+        run: |
+          git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" > changed-files.txt
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.3.0
+        with:
+          path: .
+          files-from: changed-files.txt
           fail-on: high
           format: github
 ```
@@ -100,10 +122,11 @@ If you prefer not to depend on a third-party Action in your CI, you can run the 
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.2.9
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.3.0
         id: scan
         with:
           path: .
+          # files-from: changed-files.txt
           # baseline: .mcp-safety-baseline.json
           # ignore-dirs: test,__tests__
           fail-on: none

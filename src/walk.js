@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
-const DEFAULT_IGNORE_DIRS = new Set([
+export const DEFAULT_IGNORE_DIRS = new Set([
   ".git",
   "node_modules",
   "dist",

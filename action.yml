@@ -19,6 +19,10 @@ inputs:
     description: Comma-separated list of directory basenames to ignore (e.g. test,__tests__,fixtures)
     required: false
     default: ""
+  files-from:
+    description: Newline-delimited list of files to scan (relative to path). If set, only these files are scanned.
+    required: false
+    default: ""
   format:
     description: Output format (text, json, sarif, github)
     required: false
@@ -45,6 +49,7 @@ runs:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_BASELINE: ${{ inputs.baseline }}
         INPUT_IGNORE_DIRS: ${{ inputs['ignore-dirs'] }}
+        INPUT_FILES_FROM: ${{ inputs['files-from'] }}
         INPUT_FORMAT: ${{ inputs.format }}
         INPUT_FAIL_ON: ${{ inputs['fail-on'] }}
         INPUT_SARIF_OUTPUT: ${{ inputs['sarif-output'] }}

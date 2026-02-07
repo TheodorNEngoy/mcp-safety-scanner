@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.0
+
+- Add `--files-from` (CLI) / `files-from` (GitHub Action input) to scan only a provided newline-delimited file list (useful for PR diff scanning).
+
 ## v0.2.9
 
 - Reduce false positives by skipping comment-only lines and block comments when scanning.

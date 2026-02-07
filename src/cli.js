@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import process from "node:process";
+import fs from "node:fs/promises";
 import { parseArgs } from "node:util";
 
 import { scanPath } from "./scanner.js";
@@ -12,6 +13,7 @@ const HELP = `
 Usage:
   mcp-safety-scan [path] [--format=json|text|sarif|github] [--fail-on=high|medium|low|info|none]
   mcp-safety-scan [path] [--ignore-dir=DIR]...
+  mcp-safety-scan [path] --files-from=changed-files.txt
   mcp-safety-scan [path] --baseline=baseline.json
   mcp-safety-scan [path] --write-baseline=baseline.json
 
@@ -22,6 +24,7 @@ Examples:
   mcp-safety-scan /path/to/repo --format=github
   mcp-safety-scan /path/to/repo --fail-on=medium
   mcp-safety-scan /path/to/repo --ignore-dir=test --ignore-dir=__tests__
+  git diff --name-only origin/main...HEAD > changed.txt && mcp-safety-scan . --files-from=changed.txt
   mcp-safety-scan /path/to/repo --write-baseline .mcp-safety-baseline.json
 `.trim();
 
@@ -40,6 +43,7 @@ const { values, positionals } = parseArgs({
     format: { type: "string" },
     "fail-on": { type: "string" },
     "ignore-dir": { type: "string", multiple: true },
+    "files-from": { type: "string" },
     baseline: { type: "string" },
     "write-baseline": { type: "string" },
   },
@@ -82,7 +86,27 @@ const ignoreDirs = (values["ignore-dir"] ?? [])
   .map((s) => s.trim())
   .filter(Boolean);
 
-const resultRaw = await scanPath(target, { extraIgnoreDirs: ignoreDirs.length ? ignoreDirs : null });
+const filesFrom = values["files-from"] ? String(values["files-from"]) : "";
+let filesList = null;
+if (filesFrom) {
+  try {
+    const raw = filesFrom.trim() === "-" ? await fs.readFile(0, "utf8") : await fs.readFile(filesFrom, "utf8");
+    filesList = raw
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith("#"));
+  } catch (e) {
+    const msg = e && typeof e.message === "string" ? e.message : String(e);
+    console.error(`Failed to read --files-from: ${msg}`);
+    process.exitCode = 2;
+    process.exit();
+  }
+}
+
+const resultRaw = await scanPath(target, {
+  extraIgnoreDirs: ignoreDirs.length ? ignoreDirs : null,
+  files: filesList,
+});
 
 let baselineSet = null;
 if (baselinePath) {
