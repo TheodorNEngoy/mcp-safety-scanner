@@ -7,17 +7,18 @@ This is a heuristic scanner. It is meant to catch obvious mistakes fast (especia
 ## Install / Run
 
 ```bash
-# via npx (no install)
-npx mcp-safety-scan . --fail-on=high
+# via npx from GitHub (no npm publish required)
+# (pin to a tag or a full commit SHA)
+npx --yes --package=github:TheodorNEngoy/mcp-safety-scanner#v0.3.1 mcp-safety-scan . --fail-on=high
 
-# install globally
-npm i -g mcp-safety-scan
+# install globally from GitHub (optional)
+npm i -g github:TheodorNEngoy/mcp-safety-scanner#v0.3.1
 mcp-safety-scan . --fail-on=high
 
 # via Docker (no Node install)
 docker run --rm -v "$PWD:/repo" ghcr.io/theodornengoy/mcp-safety-scanner:v0 /repo --format=github --fail-on=high
 
-cd /Users/theodornengoy/Projects/mcp-safety-scanner
+# from a local checkout of this repo
 npm test
 
 # scan current dir
@@ -81,7 +82,11 @@ Use `--include-tests` (CLI) or `include-tests: "true"` (GitHub Action input) to 
 
 ## GitHub Action
 
-Add this to a workflow (pin to a release tag like `v0.1.1`, or use `v0` to track the latest `v0.x`):
+Add this to a workflow.
+
+Notes:
+- For supply-chain safety, pin to a full commit SHA.
+- For convenience, use a release tag (e.g. `v0.3.1`) or `v0` to track the latest `v0.x`.
 
 ```yaml
 name: safety-scan
@@ -122,7 +127,20 @@ Scan only changed files in PRs (optional, reduces noise):
           format: github
 ```
 
-If you prefer not to depend on a third-party Action in your CI, you can run the scanner via Docker instead:
+If you prefer not to depend on a third-party Action in your CI, you can run the scanner via `npx` (pinned) instead:
+
+```yaml
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: MCP safety scan (npx)
+        run: |
+          npx --yes --package=github:TheodorNEngoy/mcp-safety-scanner#v0.3.1 \\
+            mcp-safety-scan . --format=github --fail-on=high
+```
+
+Or via Docker:
 
 ```yaml
       - uses: actions/checkout@v4
