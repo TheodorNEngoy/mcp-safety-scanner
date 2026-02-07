@@ -14,6 +14,7 @@ Usage:
   mcp-safety-scan [path] [--format=json|text|sarif|github] [--fail-on=high|medium|low|info|none]
   mcp-safety-scan [path] [--ignore-dir=DIR]...
   mcp-safety-scan [path] --files-from=changed-files.txt
+  mcp-safety-scan [path] --include-tests
   mcp-safety-scan [path] --baseline=baseline.json
   mcp-safety-scan [path] --write-baseline=baseline.json
 
@@ -25,6 +26,7 @@ Examples:
   mcp-safety-scan /path/to/repo --fail-on=medium
   mcp-safety-scan /path/to/repo --ignore-dir=test --ignore-dir=__tests__
   git diff --name-only origin/main...HEAD > changed.txt && mcp-safety-scan . --files-from=changed.txt
+  mcp-safety-scan . --include-tests
   mcp-safety-scan /path/to/repo --write-baseline .mcp-safety-baseline.json
 `.trim();
 
@@ -44,6 +46,7 @@ const { values, positionals } = parseArgs({
     "fail-on": { type: "string" },
     "ignore-dir": { type: "string", multiple: true },
     "files-from": { type: "string" },
+    "include-tests": { type: "boolean" },
     baseline: { type: "string" },
     "write-baseline": { type: "string" },
   },
@@ -106,6 +109,7 @@ if (filesFrom) {
 const resultRaw = await scanPath(target, {
   extraIgnoreDirs: ignoreDirs.length ? ignoreDirs : null,
   files: filesList,
+  includeTests: Boolean(values["include-tests"]),
 });
 
 let baselineSet = null;

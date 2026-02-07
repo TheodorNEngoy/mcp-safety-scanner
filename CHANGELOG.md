@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.1
+
+- Skip common test file name patterns by default (e.g. `*.test.*`, `*.spec.*`, `*_test.go`, `test_*.py`). Use `--include-tests` / `include-tests: "true"` to include them.
+
 ## v0.3.0
 
 - Add `--files-from` (CLI) / `files-from` (GitHub Action input) to scan only a provided newline-delimited file list (useful for PR diff scanning).

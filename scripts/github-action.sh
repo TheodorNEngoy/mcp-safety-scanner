@@ -8,6 +8,7 @@ TARGET_PATH="${INPUT_PATH:-.}"
 BASELINE="${INPUT_BASELINE:-}"
 IGNORE_DIRS_RAW="${INPUT_IGNORE_DIRS:-}"
 FILES_FROM_RAW="${INPUT_FILES_FROM:-}"
+INCLUDE_TESTS_RAW="${INPUT_INCLUDE_TESTS:-false}"
 FORMAT="${INPUT_FORMAT:-github}"
 FAIL_ON="${INPUT_FAIL_ON:-high}"
 SARIF_OUTPUT="${INPUT_SARIF_OUTPUT:-mcp-safety-scan.sarif}"
@@ -51,19 +52,24 @@ if [[ -n "${FILES_FROM}" ]]; then
   FILES_FROM_ARGS+=("--files-from=${FILES_FROM}")
 fi
 
+INCLUDE_TESTS_ARGS=()
+if [[ "${INCLUDE_TESTS_RAW}" == "true" || "${INCLUDE_TESTS_RAW}" == "True" || "${INCLUDE_TESTS_RAW}" == "TRUE" ]]; then
+  INCLUDE_TESTS_ARGS+=("--include-tests")
+fi
+
 if [[ "$FORMAT" == "sarif" ]]; then
   if [[ -n "${BASELINE}" ]]; then
-    node "$ROOT/src/cli.js" "$TARGET_PATH" --format=sarif --fail-on="$FAIL_ON" --baseline="$BASELINE" "${IGNORE_ARGS[@]}" "${FILES_FROM_ARGS[@]}" > "$SARIF_OUTPUT"
+    node "$ROOT/src/cli.js" "$TARGET_PATH" --format=sarif --fail-on="$FAIL_ON" --baseline="$BASELINE" "${IGNORE_ARGS[@]}" "${FILES_FROM_ARGS[@]}" "${INCLUDE_TESTS_ARGS[@]}" > "$SARIF_OUTPUT"
   else
-    node "$ROOT/src/cli.js" "$TARGET_PATH" --format=sarif --fail-on="$FAIL_ON" "${IGNORE_ARGS[@]}" "${FILES_FROM_ARGS[@]}" > "$SARIF_OUTPUT"
+    node "$ROOT/src/cli.js" "$TARGET_PATH" --format=sarif --fail-on="$FAIL_ON" "${IGNORE_ARGS[@]}" "${FILES_FROM_ARGS[@]}" "${INCLUDE_TESTS_ARGS[@]}" > "$SARIF_OUTPUT"
   fi
   if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
     echo "sarif_file=$SARIF_OUTPUT" >> "$GITHUB_OUTPUT"
   fi
 else
   if [[ -n "${BASELINE}" ]]; then
-    node "$ROOT/src/cli.js" "$TARGET_PATH" --format="$FORMAT" --fail-on="$FAIL_ON" --baseline="$BASELINE" "${IGNORE_ARGS[@]}" "${FILES_FROM_ARGS[@]}"
+    node "$ROOT/src/cli.js" "$TARGET_PATH" --format="$FORMAT" --fail-on="$FAIL_ON" --baseline="$BASELINE" "${IGNORE_ARGS[@]}" "${FILES_FROM_ARGS[@]}" "${INCLUDE_TESTS_ARGS[@]}"
   else
-    node "$ROOT/src/cli.js" "$TARGET_PATH" --format="$FORMAT" --fail-on="$FAIL_ON" "${IGNORE_ARGS[@]}" "${FILES_FROM_ARGS[@]}"
+    node "$ROOT/src/cli.js" "$TARGET_PATH" --format="$FORMAT" --fail-on="$FAIL_ON" "${IGNORE_ARGS[@]}" "${FILES_FROM_ARGS[@]}" "${INCLUDE_TESTS_ARGS[@]}"
   fi
 fi

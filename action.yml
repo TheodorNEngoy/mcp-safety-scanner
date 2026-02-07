@@ -23,6 +23,10 @@ inputs:
     description: Newline-delimited list of files to scan (relative to path). If set, only these files are scanned.
     required: false
     default: ""
+  include-tests:
+    description: Include test files (e.g. *.test.*, *.spec.*, *_test.go, test_*.py). Default is false.
+    required: false
+    default: "false"
   format:
     description: Output format (text, json, sarif, github)
     required: false
@@ -50,6 +54,7 @@ runs:
         INPUT_BASELINE: ${{ inputs.baseline }}
         INPUT_IGNORE_DIRS: ${{ inputs['ignore-dirs'] }}
         INPUT_FILES_FROM: ${{ inputs['files-from'] }}
+        INPUT_INCLUDE_TESTS: ${{ inputs['include-tests'] }}
         INPUT_FORMAT: ${{ inputs.format }}
         INPUT_FAIL_ON: ${{ inputs['fail-on'] }}
         INPUT_SARIF_OUTPUT: ${{ inputs['sarif-output'] }}

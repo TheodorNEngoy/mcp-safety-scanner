@@ -54,6 +54,16 @@ function ruleAppliesToFile(rule, filePath) {
   return !rule.exts || rule.exts.includes(ext);
 }
 
+function isTestFile(fileAbs) {
+  const base = path.basename(fileAbs).toLowerCase();
+  if (base.endsWith("_test.go")) return true;
+  if (base.startsWith("test_") && base.endsWith(".py")) return true;
+  if (base.endsWith("_test.py")) return true;
+  if (base.includes(".test.")) return true;
+  if (base.includes(".spec.")) return true;
+  return false;
+}
+
 function isInIgnoredDir({ root, fileAbs, ignoreDirs }) {
   const rel = path.relative(root, fileAbs);
   const parts = rel.split(/[\\/]+/).filter(Boolean);
@@ -140,7 +150,13 @@ function scanTextByLines({ root, relPath, text, rule }) {
 
 export async function scanPath(
   targetPath,
-  { exts = DEFAULT_SCAN_EXTS, maxFileBytes = DEFAULT_MAX_FILE_BYTES, extraIgnoreDirs = null, files = null } = {}
+  {
+    exts = DEFAULT_SCAN_EXTS,
+    maxFileBytes = DEFAULT_MAX_FILE_BYTES,
+    extraIgnoreDirs = null,
+    files = null,
+    includeTests = false,
+  } = {}
 ) {
   const root = path.resolve(targetPath);
   const ignoreDirs =
@@ -152,9 +168,10 @@ export async function scanPath(
     Array.isArray(files)
       ? normalizeFileList({ root, files, exts, ignoreDirs })
       : await collectCandidateFiles(root, { exts, extraIgnoreDirs });
+  const candidateFiles = includeTests ? candidates : candidates.filter((p) => !isTestFile(p));
   const findings = [];
 
-  for (const fileAbs of candidates) {
+  for (const fileAbs of candidateFiles) {
     let st;
     try {
       st = await fs.stat(fileAbs);
@@ -188,5 +205,5 @@ export async function scanPath(
     return (a.line ?? 0) - (b.line ?? 0);
   });
 
-  return { root, filesScanned: candidates.length, findings };
+  return { root, filesScanned: candidateFiles.length, findings };
 }

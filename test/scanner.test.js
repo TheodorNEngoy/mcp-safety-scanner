@@ -43,6 +43,16 @@ test("detects public network binding (0.0.0.0 / ::)", async () => {
   assert.ok(res.findings.some((f) => f.file === "bind-public.go" && f.ruleId === "bind-all-interfaces"));
 });
 
+test("skips common test file patterns by default (use includeTests to include)", async () => {
+  const fixtures = path.resolve("test/fixtures");
+
+  const res = await scanPath(fixtures);
+  assert.ok(!res.findings.some((f) => f.file === "example.test.js"));
+
+  const res2 = await scanPath(fixtures, { includeTests: true });
+  assert.ok(res2.findings.some((f) => f.file === "example.test.js" && f.ruleId === "dangerous-eval"));
+});
+
 test("supports scanning an explicit file list", async () => {
   const fixtures = path.resolve("test/fixtures");
 

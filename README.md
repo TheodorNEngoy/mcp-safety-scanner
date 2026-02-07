@@ -47,6 +47,9 @@ node ./src/cli.js /path/to/repo --ignore-dir=test --ignore-dir=__tests__
 # scan only files listed in a text file (one per line, relative to the scan path)
 git diff --name-only origin/main...HEAD > changed-files.txt
 node ./src/cli.js . --files-from changed-files.txt
+
+# include test files too (default is to skip common test filename patterns)
+node ./src/cli.js . --include-tests
 ```
 
 ## Suppressions
@@ -66,6 +69,16 @@ eval(userInput);
 subprocess.run(user_input, shell=True)
 ```
 
+## Test Files
+
+By default, the scanner skips common test file name patterns to reduce noise:
+
+- `*.test.*`, `*.spec.*`
+- `*_test.go`
+- `test_*.py`, `*_test.py`
+
+Use `--include-tests` (CLI) or `include-tests: "true"` (GitHub Action input) to include them.
+
 ## GitHub Action
 
 Add this to a workflow (pin to a release tag like `v0.1.1`, or use `v0` to track the latest `v0.x`):
@@ -81,10 +94,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.3.0
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.3.1
         with:
           path: .
           # files-from: changed-files.txt
+          # include-tests: "true"
           # baseline: .mcp-safety-baseline.json
           # ignore-dirs: test,__tests__
           fail-on: high
@@ -100,7 +114,7 @@ Scan only changed files in PRs (optional, reduces noise):
       - name: Compute changed files
         run: |
           git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" > changed-files.txt
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.3.0
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.3.1
         with:
           path: .
           files-from: changed-files.txt
@@ -122,7 +136,7 @@ If you prefer not to depend on a third-party Action in your CI, you can run the 
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.3.0
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.3.1
         id: scan
         with:
           path: .
