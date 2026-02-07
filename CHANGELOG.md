@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.3
+
+- Skip common test/fixture directories by default (e.g. `test/`, `tests/`, `__tests__/`, `fixtures/`) to reduce false positives.
+- Expand the MCP Security Baseline doc with concrete request body size limit examples (Express, Go net/http).
+
 ## v0.3.2
 
 - Add request-body size limit heuristics:
