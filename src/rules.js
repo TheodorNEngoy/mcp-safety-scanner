@@ -24,6 +24,7 @@ function rule({
   help = "",
   exts = JS_TS_EXTS,
   patterns,
+  matchInStrings = true,
   multiline = false,
   multilineWindow = 10,
   excludeLookbackPatterns = null,
@@ -37,6 +38,7 @@ function rule({
     help,
     exts,
     patterns,
+    matchInStrings: Boolean(matchInStrings),
     multiline: Boolean(multiline),
     multilineWindow: Number(multilineWindow),
     excludeLookbackPatterns: Array.isArray(excludeLookbackPatterns) ? excludeLookbackPatterns : [],
@@ -138,6 +140,7 @@ export const RULES = Object.freeze([
       "Using CORS middleware with default settings is often broader than intended. Configure allowed origins explicitly (allowlist) for servers that accept authenticated requests.",
     help: "Fix: configure CORS with explicit allowed origins (allowlist). Avoid default cors()/CORS(app).",
     exts: null,
+    matchInStrings: false,
     patterns: [
       /\buse\s*\(\s*cors\s*\(\s*\)\s*\)/,
       /\bapp\.use\s*\(\s*cors\s*\(\s*\)\s*\)/,
@@ -188,6 +191,7 @@ export const RULES = Object.freeze([
       "`eval()` / `new Function()` can turn untrusted input into code execution. Avoid entirely in networked services.",
     help: "Fix: remove eval/new Function; replace with safe parsing/dispatch (no dynamic code).",
     exts: EVAL_EXTS,
+    matchInStrings: false,
     patterns: [/\beval\s*\(/, /\bnew\s+Function\s*\(/],
   }),
 
@@ -275,6 +279,7 @@ export const RULES = Object.freeze([
     description:
       "`Request.json()` reads the full request body into memory. For networked MCP/tool servers, enforce a max request size (check Content-Length and/or stream with a byte limit) and return 413 when exceeded.",
     help: "Fix: enforce a request body size limit before calling Request.json(); return 413 Payload Too Large when exceeded.",
+    matchInStrings: false,
     patterns: [/\bawait\s+(?:req|request)\.json\s*\(\s*\)/],
   }),
 

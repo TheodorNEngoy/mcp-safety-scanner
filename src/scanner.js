@@ -185,6 +185,86 @@ function isExcludedByLookback(lines, i, rule) {
   return false;
 }
 
+function maskSingleAndDoubleQuotedStrings(line) {
+  // Heuristic: avoid matching patterns inside string literals for rules that
+  // don't need it (e.g., "don't use eval(" in an error message).
+  //
+  // We intentionally keep this simple and line-based; it's not a full parser.
+  if (!line) return "";
+
+  let out = "";
+  let inSingle = false;
+  let inDouble = false;
+  let escaped = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+
+    if (inSingle) {
+      if (escaped) {
+        escaped = false;
+        out += " ";
+        continue;
+      }
+      if (ch === "\\") {
+        escaped = true;
+        out += " ";
+        continue;
+      }
+      if (ch === "'") {
+        inSingle = false;
+        out += ch;
+        continue;
+      }
+      out += " ";
+      continue;
+    }
+
+    if (inDouble) {
+      if (escaped) {
+        escaped = false;
+        out += " ";
+        continue;
+      }
+      if (ch === "\\") {
+        escaped = true;
+        out += " ";
+        continue;
+      }
+      if (ch === '"') {
+        inDouble = false;
+        out += ch;
+        continue;
+      }
+      out += " ";
+      continue;
+    }
+
+    if (ch === "'") {
+      inSingle = true;
+      out += ch;
+      continue;
+    }
+    if (ch === '"') {
+      inDouble = true;
+      out += ch;
+      continue;
+    }
+
+    out += ch;
+  }
+
+  return out;
+}
+
+function maskStringsInMultilineChunk(chunk) {
+  if (!chunk) return "";
+  return String(chunk)
+    .split(/\r?\n/)
+    .map(maskSingleAndDoubleQuotedStrings)
+    .join("\n");
+}
+
 function scanTextByLines({ root, relPath, text, rule }) {
   const findings = [];
   const lines = text.split(/\r?\n/);
@@ -209,7 +289,8 @@ function scanTextByLines({ root, relPath, text, rule }) {
     if (isLineSuppressedForRule(lines, i, rule.id)) continue;
 
     const multilineWindow = rule.multiline ? Math.max(2, Math.min(50, Number(rule.multilineWindow) || 10)) : 1;
-    const haystack = rule.multiline ? buildMultilineChunk(lines, i, multilineWindow) : line;
+    const haystackRaw = rule.multiline ? buildMultilineChunk(lines, i, multilineWindow) : line;
+    const haystack = rule.matchInStrings === false ? maskStringsInMultilineChunk(haystackRaw) : haystackRaw;
     const maxStart = rule.multiline ? line.length : Infinity;
 
     for (const re of rule.patterns) {

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.7
+
+- Reduce false positives by not matching some code-only rules inside string literals (e.g. `eval(` in error messages).
+
 ## v0.4.6
 
 - Detect Go servers binding to all interfaces via empty-host addresses (e.g. `":8080"` in `ListenAndServe` / `net.Listen`).

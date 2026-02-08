@@ -115,6 +115,15 @@ test("detects web-standard Request.json() unbounded reads", async () => {
   assert.ok(res.findings.some((f) => f.file === "web-request-json.js" && f.ruleId === "web-request-json-no-limit"));
 });
 
+test("does not flag code-only patterns when they only appear inside string literals", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures, { files: ["strings-should-not-trigger.js"] });
+
+  assert.ok(!res.findings.some((f) => f.ruleId === "dangerous-eval"));
+  assert.ok(!res.findings.some((f) => f.ruleId === "cors-unconfigured-middleware"));
+  assert.ok(!res.findings.some((f) => f.ruleId === "web-request-json-no-limit"));
+});
+
 test("skips common test file patterns by default (use includeTests to include)", async () => {
   const fixtures = path.resolve("test/fixtures");
 

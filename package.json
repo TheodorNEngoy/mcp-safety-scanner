@@ -1,6 +1,6 @@
 {
   "name": "mcp-safety-scan",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "Dependency-free CLI to scan JS/TS/Python/Go repos for common MCP/tool-server security footguns (CORS, eval, exec, etc.)",
   "type": "module",
   "license": "MIT",
