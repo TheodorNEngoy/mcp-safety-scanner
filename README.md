@@ -158,10 +158,21 @@ Or via Docker:
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
+name: safety-scan
+on: [pull_request]
+
 permissions:
   contents: read
   security-events: write
 
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - uses: TheodorNEngoy/mcp-safety-scanner@2e4512a3bc199a38b5c00e41daea8abdc1e39811 # v0.4.7
         id: scan
         with:
