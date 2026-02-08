@@ -42,6 +42,9 @@ node ./src/cli.js /path/to/repo --write-baseline .mcp-safety-baseline.json
 # use a baseline file (only new findings remain)
 node ./src/cli.js /path/to/repo --baseline .mcp-safety-baseline.json --fail-on=high
 
+# note: baseline fingerprints include line/column, so if you refactor/move code
+# you may need to regenerate the baseline.
+
 # ignore additional directories (by basename)
 node ./src/cli.js /path/to/repo --ignore-dir=test --ignore-dir=__tests__
 
