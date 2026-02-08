@@ -1,0 +1,7 @@
+- id: mcp-safety-scan
+  name: MCP Safety Scan
+  description: Scan for common MCP/tool-server security footguns (CORS, eval, exec, etc.)
+  entry: mcp-safety-scan .
+  language: node
+  files: "\\.(js|mjs|cjs|ts|tsx|jsx|mts|cts|gs|py|go)$"
+  pass_filenames: true
