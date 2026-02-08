@@ -90,7 +90,7 @@ Add this to a workflow.
 
 Notes:
 - For supply-chain safety, pin to a full commit SHA.
-- For convenience, use a release tag (e.g. `v0.4.6`) or `v0` to track the latest `v0.x`.
+- For convenience, use a release tag (e.g. `v0.4.6`).
 
 ```yaml
 name: safety-scan
