@@ -64,6 +64,8 @@ export const RULES = Object.freeze([
       // Python: Starlette/FastAPI allow_origins=["*"] + allow_credentials=True
       /\badd_middleware\s*\(\s*CORSMiddleware\s*,(?=[\s\S]{0,600}\ballow_origins\s*=\s*\[[^\]]*["']\*["'][^\]]*\])(?=[\s\S]{0,600}\ballow_credentials\s*=\s*True\b)[\s\S]{0,600}\)/,
       /\bCORSMiddleware\s*\(\s*(?=[\s\S]{0,600}\ballow_origins\s*=\s*\[[^\]]*["']\*["'][^\]]*\])(?=[\s\S]{0,600}\ballow_credentials\s*=\s*True\b)[\s\S]{0,600}\)/,
+      /\badd_middleware\s*\(\s*CORSMiddleware\s*,(?=[\s\S]{0,600}\ballow_origins\s*=\s*["']\*["'])(?=[\s\S]{0,600}\ballow_credentials\s*=\s*True\b)[\s\S]{0,600}\)/,
+      /\bCORSMiddleware\s*\(\s*(?=[\s\S]{0,600}\ballow_origins\s*=\s*["']\*["'])(?=[\s\S]{0,600}\ballow_credentials\s*=\s*True\b)[\s\S]{0,600}\)/,
 
       // Go: rs/cors or gin-contrib/cors wildcard + AllowCredentials
       /\bcors\.Options\s*\{(?=[\s\S]{0,500}\bAllowedOrigins\s*:\s*\[\]string\s*\{[^}]*["']\*["'][^}]*\})(?=[\s\S]{0,500}\bAllowCredentials\s*:\s*true\b)[\s\S]{0,500}\}/,
@@ -94,6 +96,7 @@ export const RULES = Object.freeze([
 
       // Python (FastAPI/Starlette)
       /\ballow_origins\s*=\s*\[\s*["']\*\s*["']\s*\]/i,
+      /\ballow_origins\s*=\s*["']\*["']/i,
       /\ballow_origin_regex\s*=\s*r?["']\.\*["']/i,
 
       // Go (gin-contrib/cors, rs/cors, echo, etc.)

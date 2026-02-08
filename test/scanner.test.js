@@ -29,12 +29,18 @@ test("detects wildcard and reflected CORS", async () => {
     )
   );
   assert.ok(
+    res.findings.some(
+      (f) => f.file === "python-cors-wildcard-credentials-string.py" && f.ruleId === "cors-credentials-any-origin"
+    )
+  );
+  assert.ok(
     res.findings.some((f) => f.file === "go-cors-wildcard-credentials.go" && f.ruleId === "cors-credentials-any-origin")
   );
 
   assert.ok(res.findings.some((f) => f.file === "cors-origin-true.js" && f.ruleId === "cors-reflect-origin"));
   assert.ok(res.findings.some((f) => f.file === "go-allowall-cors.go" && f.ruleId === "cors-wildcard-origin"));
   assert.ok(res.findings.some((f) => f.file === "cors-multiline-wildcard.js" && f.ruleId === "cors-wildcard-origin"));
+  assert.ok(res.findings.some((f) => f.file === "python-wildcard-cors-string.py" && f.ruleId === "cors-wildcard-origin"));
 });
 
 test("detects Node child_process shell:true options", async () => {

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.3
+
+- Detect Python wildcard CORS configured as `allow_origins="*"` (string form), including the credentialed variant with `allow_credentials=True`.
+
 ## v0.4.2
 
 - CLI: support scanning an explicit file list via positional args (`mcp-safety-scan . file1.ts file2.py ...`).
