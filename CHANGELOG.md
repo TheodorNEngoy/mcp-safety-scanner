@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.6
+
+- Detect Go servers binding to all interfaces via empty-host addresses (e.g. `":8080"` in `ListenAndServe` / `net.Listen`).
+
 ## v0.4.5
 
 - Baselines are now versioned: newly written baselines (v2) include line/column in fingerprints to avoid accidentally suppressing new identical findings in the same file.

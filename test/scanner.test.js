@@ -104,6 +104,8 @@ test("detects public network binding (0.0.0.0 / ::)", async () => {
   assert.ok(res.findings.some((f) => f.file === "bind-public.js" && f.ruleId === "bind-all-interfaces"));
   assert.ok(res.findings.some((f) => f.file === "bind-public.py" && f.ruleId === "bind-all-interfaces"));
   assert.ok(res.findings.some((f) => f.file === "bind-public.go" && f.ruleId === "bind-all-interfaces"));
+  assert.ok(res.findings.some((f) => f.file === "bind-public-colon.go" && f.ruleId === "bind-all-interfaces"));
+  assert.ok(!res.findings.some((f) => f.file === "bind-localhost.go" && f.ruleId === "bind-all-interfaces"));
 });
 
 test("detects web-standard Request.json() unbounded reads", async () => {

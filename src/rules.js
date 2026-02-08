@@ -172,8 +172,11 @@ export const RULES = Object.freeze([
       // Go (net/http, net.Listen)
       /\bListenAndServe(?:TLS)?\s*\(\s*["']0\.0\.0\.0:/,
       /\bListenAndServe(?:TLS)?\s*\(\s*["']\[\:\:\]/,
+      // Empty host binds to all interfaces (e.g. ":8080").
+      /\bListenAndServe(?:TLS)?\s*\(\s*["']:\d+/,
       /\bnet\.Listen\s*\([^)]*["']0\.0\.0\.0:/,
       /\bnet\.Listen\s*\([^)]*["']\[\:\:\]/,
+      /\bnet\.Listen\s*\([^)]*["']:\d+/,
     ],
   }),
 
