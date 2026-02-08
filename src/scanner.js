@@ -154,6 +154,19 @@ function buildMultilineChunk(lines, start, windowSize) {
   return out.join("\n");
 }
 
+function buildContextSnippet(chunk, maxLen = 240) {
+  if (!chunk) return "";
+  const s = String(chunk)
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!s) return "";
+  return s.length > maxLen ? s.slice(0, maxLen) : s;
+}
+
 function isExcludedByLookback(lines, i, rule) {
   const patterns = Array.isArray(rule.excludeLookbackPatterns) ? rule.excludeLookbackPatterns : [];
   if (!patterns.length) return false;
@@ -207,6 +220,7 @@ function scanTextByLines({ root, relPath, text, rule }) {
       if (idx > maxStart) continue;
       if (isExcludedByLookback(lines, i, rule)) break;
       const excerpt = line.trim().slice(0, 240);
+      const context = rule.multiline ? buildContextSnippet(haystack) : "";
       findings.push({
         ruleId: rule.id,
         severity: rule.severity,
@@ -216,6 +230,7 @@ function scanTextByLines({ root, relPath, text, rule }) {
         line: i + 1,
         column: idx + 1,
         excerpt,
+        context: context || undefined,
       });
       break;
     }

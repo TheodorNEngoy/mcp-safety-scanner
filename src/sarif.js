@@ -36,6 +36,7 @@ export function formatSarif({ root, findings }) {
   const results = (findings ?? []).map((f) => {
     const r = ruleIndex.get(f.ruleId);
     const level = sarifLevelForSeverity(f.severity);
+    const snippet = f.context || f.excerpt;
 
     const artifactLocation = {
       uri: f.file,
@@ -50,7 +51,7 @@ export function formatSarif({ root, findings }) {
       ruleId: f.ruleId,
       level,
       message: {
-        text: `${f.title}${f.excerpt ? `: ${f.excerpt}` : ""}`,
+        text: `${f.title}${snippet ? `: ${snippet}` : ""}`,
       },
       partialFingerprints: {
         "mcp-safety-scan/v1": findingFingerprint(f),

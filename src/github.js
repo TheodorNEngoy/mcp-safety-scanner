@@ -29,7 +29,8 @@ export function formatGithub({ findings }) {
     if (col) props.push(`col=${col}`);
 
     const title = `${f.ruleId} ${f.title}`;
-    const msgBase = f.excerpt ? `${title}: ${f.excerpt}` : title;
+    const snippet = f.context || f.excerpt;
+    const msgBase = snippet ? `${title}: ${snippet}` : title;
     const msg = f.help ? `${msgBase} | ${String(f.help).trim()}` : msgBase;
 
     const prefix = props.length ? `::${cmd} ${props.join(",")}::` : `::${cmd}::`;

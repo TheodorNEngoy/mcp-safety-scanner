@@ -46,6 +46,7 @@ export async function writeBaseline(filePath, { findings } = {}) {
       severity: f.severity,
       file: f.file,
       excerpt: f.excerpt ?? "",
+      context: f.context ?? "",
     });
   }
 

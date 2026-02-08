@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.4
+
+- Improve finding snippets for multi-line matches by including a collapsed multi-line context (used in text/github/SARIF outputs).
+
 ## v0.4.3
 
 - Detect Python wildcard CORS configured as `allow_origins="*"` (string form), including the credentialed variant with `allow_credentials=True`.

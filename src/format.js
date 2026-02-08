@@ -22,7 +22,8 @@ export function formatText({ root, filesScanned, findings }) {
     const loc = `${f.file}:${f.line}:${f.column}`;
     parts.push(`[${f.severity}] ${f.ruleId} ${f.title}`);
     parts.push(`  ${loc}`);
-    if (f.excerpt) parts.push(`  ${f.excerpt}`);
+    const snippet = f.context || f.excerpt;
+    if (snippet) parts.push(`  ${snippet}`);
     if (f.help) parts.push(`  help: ${String(f.help).trim()}`);
   }
 
