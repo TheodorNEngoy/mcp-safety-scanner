@@ -142,6 +142,16 @@ test("does not flag python exec() when it only appears in strings", async () => 
   assert.ok(!res.findings.some((f) => f.ruleId === "python-exec"));
 });
 
+test("does not flag eval/exec patterns when they only appear inside multi-line strings (Python triple quotes, JS template literals)", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures, {
+    files: ["python-triple-quoted-string.py", "template-literal-eval.js"],
+  });
+
+  assert.ok(!res.findings.some((f) => f.ruleId === "dangerous-eval"), JSON.stringify(res.findings, null, 2));
+  assert.ok(!res.findings.some((f) => f.ruleId === "python-exec"), JSON.stringify(res.findings, null, 2));
+});
+
 test("skips common test file patterns by default (use includeTests to include)", async () => {
   const fixtures = path.resolve("test/fixtures");
 

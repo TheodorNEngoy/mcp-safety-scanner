@@ -257,21 +257,211 @@ function maskSingleAndDoubleQuotedStrings(line) {
   return out;
 }
 
-function maskStringsInMultilineChunk(chunk) {
-  if (!chunk) return "";
-  return String(chunk)
-    .split(/\r?\n/)
-    .map(maskSingleAndDoubleQuotedStrings)
-    .join("\n");
+function maskJsLikeLines(lines) {
+  // Mask strings and comments across lines for "code-only" rules (matchInStrings=false).
+  //
+  // This is intentionally heuristic: the goal is to reduce noisy matches in
+  // docs/prompts (template literals, etc.) without needing a full parser.
+  let inBlockComment = false;
+  let inBacktick = false;
+  let backtickEscaped = false;
+
+  const outLines = [];
+
+  for (const line of lines) {
+    if (!line) {
+      outLines.push("");
+      continue;
+    }
+
+    let out = "";
+
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      const next = i + 1 < line.length ? line[i + 1] : "";
+
+      if (inBlockComment) {
+        if (ch === "*" && next === "/") {
+          out += "*/";
+          i++;
+          inBlockComment = false;
+          continue;
+        }
+        out += " ";
+        continue;
+      }
+
+      if (inBacktick) {
+        if (backtickEscaped) {
+          backtickEscaped = false;
+          out += " ";
+          continue;
+        }
+        if (ch === "\\") {
+          backtickEscaped = true;
+          out += " ";
+          continue;
+        }
+        if (ch === "`") {
+          out += "`";
+          inBacktick = false;
+          continue;
+        }
+        out += " ";
+        continue;
+      }
+
+      // Start of // comment (mask rest of line)
+      if (ch === "/" && next === "/") {
+        out += " ".repeat(line.length - i);
+        break;
+      }
+
+      // Start of /* block comment
+      if (ch === "/" && next === "*") {
+        out += "/*";
+        i++;
+        inBlockComment = true;
+        continue;
+      }
+
+      // Start of template literal
+      if (ch === "`") {
+        out += "`";
+        inBacktick = true;
+        backtickEscaped = false;
+        continue;
+      }
+
+      // Single/double quoted strings (line-based)
+      if (ch === "'" || ch === '"') {
+        const quote = ch;
+        out += quote;
+        let escaped = false;
+        for (i = i + 1; i < line.length; i++) {
+          const c = line[i];
+          if (escaped) {
+            escaped = false;
+            out += " ";
+            continue;
+          }
+          if (c === "\\") {
+            escaped = true;
+            out += " ";
+            continue;
+          }
+          if (c === quote) {
+            out += quote;
+            break;
+          }
+          out += " ";
+        }
+        continue;
+      }
+
+      out += ch;
+    }
+
+    outLines.push(out);
+  }
+
+  return outLines;
 }
 
-function scanTextByLines({ root, relPath, text, rule }) {
+function maskPythonLines(lines) {
+  // Mask Python strings across lines for "code-only" rules (matchInStrings=false).
+  //
+  // Key reason: triple-quoted strings (common for prompts/docstrings) may
+  // include text like "do not use eval(" which should not trigger.
+  let inTriple = null; // "'''" or '"""'
+
+  const outLines = [];
+
+  for (const line of lines) {
+    if (!line) {
+      outLines.push("");
+      continue;
+    }
+
+    let out = "";
+
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+
+      if (inTriple) {
+        if (line.startsWith(inTriple, i)) {
+          out += inTriple;
+          i += 2; // +1 from loop
+          inTriple = null;
+          continue;
+        }
+        out += " ";
+        continue;
+      }
+
+      // Start of inline comment (mask rest of line)
+      if (ch === "#") {
+        out += " ".repeat(line.length - i);
+        break;
+      }
+
+      // Triple-quoted string start
+      if (line.startsWith("'''", i) || line.startsWith('"""', i)) {
+        inTriple = line.startsWith("'''", i) ? "'''" : '"""';
+        out += inTriple;
+        i += 2; // +1 from loop
+        continue;
+      }
+
+      // Single/double quoted strings (line-based)
+      if (ch === "'" || ch === '"') {
+        const quote = ch;
+        out += quote;
+        let escaped = false;
+        for (i = i + 1; i < line.length; i++) {
+          const c = line[i];
+          if (escaped) {
+            escaped = false;
+            out += " ";
+            continue;
+          }
+          if (c === "\\") {
+            escaped = true;
+            out += " ";
+            continue;
+          }
+          if (c === quote) {
+            out += quote;
+            break;
+          }
+          out += " ";
+        }
+        continue;
+      }
+
+      out += ch;
+    }
+
+    outLines.push(out);
+  }
+
+  return outLines;
+}
+
+function buildMaskedLinesForCodeOnlyRules({ lines, fileAbs }) {
+  const ext = path.extname(fileAbs).toLowerCase();
+  if (ext === ".py") return maskPythonLines(lines);
+  return maskJsLikeLines(lines);
+}
+
+function scanTextByLines({ relPath, lines, maskedLines, rule }) {
   const findings = [];
-  const lines = text.split(/\r?\n/);
+  const scanLines = rule.matchInStrings === false ? maskedLines : lines;
   let inBlockComment = false;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    const scanLine = scanLines[i] ?? "";
 
     // Reduce obvious false positives from docs/comments.
     // This is heuristic and intentionally simple (line-based scanner).
@@ -289,8 +479,7 @@ function scanTextByLines({ root, relPath, text, rule }) {
     if (isLineSuppressedForRule(lines, i, rule.id)) continue;
 
     const multilineWindow = rule.multiline ? Math.max(2, Math.min(50, Number(rule.multilineWindow) || 10)) : 1;
-    const haystackRaw = rule.multiline ? buildMultilineChunk(lines, i, multilineWindow) : line;
-    const haystack = rule.matchInStrings === false ? maskStringsInMultilineChunk(haystackRaw) : haystackRaw;
+    const haystack = rule.multiline ? buildMultilineChunk(scanLines, i, multilineWindow) : scanLine;
     const maxStart = rule.multiline ? line.length : Infinity;
 
     for (const re of rule.patterns) {
@@ -362,11 +551,14 @@ export async function scanPath(
     if (isProbablyBinary(buf)) continue;
 
     const text = buf.toString("utf8");
+    const lines = text.split(/\r?\n/);
+    // Only used for rules with matchInStrings=false to reduce noise from docs/prompts.
+    const maskedLines = buildMaskedLinesForCodeOnlyRules({ lines, fileAbs });
     const relPath = path.relative(root, fileAbs) || path.basename(fileAbs);
 
     for (const rule of RULES) {
       if (!ruleAppliesToFile(rule, fileAbs)) continue;
-      findings.push(...scanTextByLines({ root, relPath, text, rule }));
+      findings.push(...scanTextByLines({ relPath, lines, maskedLines, rule }));
     }
   }
 
