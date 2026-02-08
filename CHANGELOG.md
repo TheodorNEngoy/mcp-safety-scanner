@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.8
+
+- Reduce false positives for `eval`/`exec` detection (e.g., do not flag `redis.eval(...)` or `"exec("` in strings).
+
 ## v0.4.7
 
 - Reduce false positives by not matching some code-only rules inside string literals (e.g. `eval(` in error messages).

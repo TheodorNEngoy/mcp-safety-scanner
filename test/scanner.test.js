@@ -124,6 +124,24 @@ test("does not flag code-only patterns when they only appear inside string liter
   assert.ok(!res.findings.some((f) => f.ruleId === "web-request-json-no-limit"));
 });
 
+test("does not flag redis_client.eval(...) as JavaScript/Python eval()", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures, { files: ["python-redis-eval.py"] });
+  assert.ok(!res.findings.some((f) => f.ruleId === "dangerous-eval"));
+});
+
+test("still detects window.eval(...) global eval variants", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures, { files: ["window-eval.js"] });
+  assert.ok(res.findings.some((f) => f.ruleId === "dangerous-eval"));
+});
+
+test("does not flag python exec() when it only appears in strings", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures, { files: ["python-string-exec.py"] });
+  assert.ok(!res.findings.some((f) => f.ruleId === "python-exec"));
+});
+
 test("skips common test file patterns by default (use includeTests to include)", async () => {
   const fixtures = path.resolve("test/fixtures");
 

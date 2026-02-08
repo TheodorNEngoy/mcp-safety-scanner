@@ -192,7 +192,15 @@ export const RULES = Object.freeze([
     help: "Fix: remove eval/new Function; replace with safe parsing/dispatch (no dynamic code).",
     exts: EVAL_EXTS,
     matchInStrings: false,
-    patterns: [/\beval\s*\(/, /\bnew\s+Function\s*\(/],
+    // Avoid flagging common method names like `redis.eval(...)` by requiring
+    // `eval(` not be preceded by a word char or dot, but still catch common
+    // global eval access patterns.
+    patterns: [
+      /(?<![\w.])eval\s*\(/,
+      /\b(?:globalThis|window|global)\.eval\s*\(/,
+      /\bbuiltins\.eval\s*\(/,
+      /\bnew\s+Function\s*\(/,
+    ],
   }),
 
   rule({
@@ -320,6 +328,7 @@ export const RULES = Object.freeze([
     description: "`exec()` turns strings into code. Avoid entirely in networked services and tool backends.",
     help: "Fix: remove exec(); replace with safe parsing/dispatch (no dynamic code).",
     exts: PY_EXTS,
+    matchInStrings: false,
     patterns: [/(?<![\w.])exec\s*\(/],
   }),
 
@@ -331,6 +340,7 @@ export const RULES = Object.freeze([
       "Shell execution is easy to misuse with untrusted input. Avoid `shell=True` and `os.system()`; prefer argument arrays and strict allowlists when absolutely required.",
     help: "Fix: avoid shell=True/os.system(); use subprocess.run([cmd, ...], shell=False) + allowlists.",
     exts: PY_EXTS,
+    matchInStrings: false,
     multiline: true,
     patterns: [
       /\bsubprocess\.(run|Popen|call|check_output|check_call)\s*\((?:(?!\n\s*(?:subprocess\.|Popen\b))[\s\S]){0,400}\bshell\s*=\s*True\b/,
