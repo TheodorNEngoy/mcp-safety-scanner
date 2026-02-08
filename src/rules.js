@@ -47,6 +47,38 @@ function rule({
 // Each pattern is line-based or small-window multi-line and should be fairly specific to reduce noise.
 export const RULES = Object.freeze([
   rule({
+    id: "cors-credentials-any-origin",
+    severity: "critical",
+    title: "Credentialed CORS with any-origin policy",
+    description:
+      "Allowing credentials while allowing any origin (wildcard '*' or reflecting Origin) allows any website to make authenticated requests and read responses. This is a common CSRF/exfiltration footgun for MCP/tool servers.",
+    help: "Fix: do not use credentials with wildcard/reflected origins. Validate Origin against an explicit allowlist and only enable credentials if required.",
+    exts: null,
+    multiline: true,
+    multilineWindow: 15,
+    patterns: [
+      // Node: cors({ origin: '*', credentials: true }) or cors({ origin: true, credentials: true })
+      /\bcors\s*\(\s*\{(?=[\s\S]{0,400}\borigin\s*:\s*["']\*["'])(?=[\s\S]{0,400}\bcredentials\s*:\s*true\b)[\s\S]{0,400}\}\s*\)/i,
+      /\bcors\s*\(\s*\{(?=[\s\S]{0,400}\borigin\s*:\s*true\b)(?=[\s\S]{0,400}\bcredentials\s*:\s*true\b)[\s\S]{0,400}\}\s*\)/i,
+
+      // Python: Starlette/FastAPI allow_origins=["*"] + allow_credentials=True
+      /\badd_middleware\s*\(\s*CORSMiddleware\s*,(?=[\s\S]{0,600}\ballow_origins\s*=\s*\[[^\]]*["']\*["'][^\]]*\])(?=[\s\S]{0,600}\ballow_credentials\s*=\s*True\b)[\s\S]{0,600}\)/,
+      /\bCORSMiddleware\s*\(\s*(?=[\s\S]{0,600}\ballow_origins\s*=\s*\[[^\]]*["']\*["'][^\]]*\])(?=[\s\S]{0,600}\ballow_credentials\s*=\s*True\b)[\s\S]{0,600}\)/,
+
+      // Go: rs/cors or gin-contrib/cors wildcard + AllowCredentials
+      /\bcors\.Options\s*\{(?=[\s\S]{0,500}\bAllowedOrigins\s*:\s*\[\]string\s*\{[^}]*["']\*["'][^}]*\})(?=[\s\S]{0,500}\bAllowCredentials\s*:\s*true\b)[\s\S]{0,500}\}/,
+      /\bcors\.Config\s*\{(?=[\s\S]{0,500}\bAllowAllOrigins\s*:\s*true\b)(?=[\s\S]{0,500}\bAllowCredentials\s*:\s*true\b)[\s\S]{0,500}\}/,
+      /\bcors\.Config\s*\{(?=[\s\S]{0,500}\bAllowOrigins\s*:\s*\[\]string\s*\{[^}]*["']\*["'][^}]*\})(?=[\s\S]{0,500}\bAllowCredentials\s*:\s*true\b)[\s\S]{0,500}\}/,
+
+      // Manual headers: wildcard/reflected origin + allow-credentials
+      /Access-Control-Allow-Origin[^\n]*["']\*["'][\s\S]{0,400}Access-Control-Allow-Credentials[^\n]*(?:true|["']true["'])/i,
+      /Access-Control-Allow-Credentials[^\n]*(?:true|["']true["'])[\s\S]{0,400}Access-Control-Allow-Origin[^\n]*["']\*["']/i,
+      /Access-Control-Allow-Origin[^\n]*(?:req\.headers\.origin|request\.headers\.origin)[\s\S]{0,400}Access-Control-Allow-Credentials[^\n]*(?:true|["']true["'])/i,
+      /Access-Control-Allow-Credentials[^\n]*(?:true|["']true["'])[\s\S]{0,400}Access-Control-Allow-Origin[^\n]*(?:req\.headers\.origin|request\.headers\.origin)/i,
+    ],
+  }),
+
+  rule({
     id: "cors-wildcard-origin",
     severity: "high",
     title: "Wildcard CORS origin",
@@ -228,16 +260,6 @@ export const RULES = Object.freeze([
       "Logging request headers can leak credentials (Authorization, cookies). Redact sensitive headers before logging.",
     help: "Fix: redact Authorization/Cookie before logging; log only the fields you need.",
     patterns: [/\bconsole\.(log|info|debug)\s*\(\s*req\.headers\b/, /\bconsole\.(log|info|debug)\s*\(\s*request\.headers\b/],
-  }),
-
-  rule({
-    id: "express-json-no-limit",
-    severity: "medium",
-    title: "Express JSON parser without explicit size limit",
-    description:
-      "`express.json()` defaults may be too large/surprising for tool endpoints. Set an explicit `limit` to reduce DoS risk.",
-    help: "Fix: set an explicit size limit, e.g. express.json({ limit: '200kb' }).",
-    patterns: [/\bexpress\.json\s*\(\s*\)\s*/, /\bbodyParser\.json\s*\(\s*\)\s*/],
   }),
 
   rule({

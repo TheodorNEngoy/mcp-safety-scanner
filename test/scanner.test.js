@@ -13,9 +13,22 @@ test("detects wildcard and reflected CORS", async () => {
   const res = await scanPath(fixtures);
 
   const ruleIds = new Set(res.findings.map((f) => f.ruleId));
+  assert.ok(ruleIds.has("cors-credentials-any-origin"));
   assert.ok(ruleIds.has("cors-wildcard-origin"));
   assert.ok(ruleIds.has("cors-reflect-origin"));
   assert.ok(ruleIds.has("child-process-exec"));
+
+  assert.ok(
+    res.findings.some((f) => f.file === "cors-wildcard-credentials.js" && f.ruleId === "cors-credentials-any-origin")
+  );
+  assert.ok(
+    res.findings.some(
+      (f) => f.file === "python-cors-wildcard-credentials.py" && f.ruleId === "cors-credentials-any-origin"
+    )
+  );
+  assert.ok(
+    res.findings.some((f) => f.file === "go-cors-wildcard-credentials.go" && f.ruleId === "cors-credentials-any-origin")
+  );
 
   assert.ok(res.findings.some((f) => f.file === "cors-origin-true.js" && f.ruleId === "cors-reflect-origin"));
   assert.ok(res.findings.some((f) => f.file === "go-allowall-cors.go" && f.ruleId === "cors-wildcard-origin"));

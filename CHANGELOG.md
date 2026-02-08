@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.0
+
+- Add a critical CORS footgun rule: credentialed CORS combined with wildcard/reflected origins (`cors-credentials-any-origin`).
+- Remove the `express.json()` default-size warning (Express/body-parser has a built-in default limit).
+
 ## v0.3.9
 
 - Reduce false positives for Go request-body reads: `io.ReadAll(req.Body)` is no longer flagged inside `RoundTrip` implementations.
