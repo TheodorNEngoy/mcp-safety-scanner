@@ -1,20 +1,34 @@
 import crypto from "node:crypto";
 import { promises as fs } from "node:fs";
 
-export function findingFingerprint(f) {
+export function findingFingerprint(f, version = 1) {
   const h = crypto.createHash("sha256");
   h.update(String(f?.ruleId ?? ""));
   h.update("\n");
   h.update(String(f?.file ?? ""));
-  h.update("\n");
-  h.update(String(f?.excerpt ?? ""));
+  if (Number(version) >= 2) {
+    h.update("\n");
+    h.update(String(f?.line ?? ""));
+    h.update("\n");
+    h.update(String(f?.column ?? ""));
+    h.update("\n");
+    h.update(String(f?.excerpt ?? ""));
+  } else {
+    h.update("\n");
+    h.update(String(f?.excerpt ?? ""));
+  }
   return h.digest("hex");
 }
 
-export function applyBaseline(findings, baselineFingerprints) {
-  if (!baselineFingerprints) return findings ?? [];
-  const set = baselineFingerprints instanceof Set ? baselineFingerprints : new Set(baselineFingerprints);
-  return (findings ?? []).filter((f) => !set.has(findingFingerprint(f)));
+export function applyBaseline(findings, baseline) {
+  if (!baseline) return findings ?? [];
+
+  // Backward-compatible: allow passing a Set directly (v1 baselines).
+  const version = baseline instanceof Set ? 1 : Number(baseline?.version) || 1;
+  const set = baseline instanceof Set ? baseline : baseline?.fingerprints;
+  if (!set || !(set instanceof Set)) return findings ?? [];
+
+  return (findings ?? []).filter((f) => !set.has(findingFingerprint(f, version)));
 }
 
 export async function loadBaseline(filePath) {
@@ -30,7 +44,10 @@ export async function loadBaseline(filePath) {
   if (!Array.isArray(fps)) {
     throw new Error("Invalid baseline file: expected { fingerprints: string[] }");
   }
-  return new Set(fps.map((s) => String(s)));
+
+  const versionRaw = data?.version;
+  const version = Number.isFinite(Number(versionRaw)) ? Number(versionRaw) : 1;
+  return { version, fingerprints: new Set(fps.map((s) => String(s))) };
 }
 
 export async function writeBaseline(filePath, { findings } = {}) {
@@ -38,7 +55,7 @@ export async function writeBaseline(filePath, { findings } = {}) {
   // excerpts occur multiple times in the same file (common for repeated patterns).
   const entryByFingerprint = new Map();
   for (const f of findings ?? []) {
-    const fingerprint = findingFingerprint(f);
+    const fingerprint = findingFingerprint(f, 2);
     if (entryByFingerprint.has(fingerprint)) continue;
     entryByFingerprint.set(fingerprint, {
       fingerprint,
@@ -47,6 +64,8 @@ export async function writeBaseline(filePath, { findings } = {}) {
       file: f.file,
       excerpt: f.excerpt ?? "",
       context: f.context ?? "",
+      line: f.line ?? null,
+      column: f.column ?? null,
     });
   }
 
@@ -54,7 +73,7 @@ export async function writeBaseline(filePath, { findings } = {}) {
   const entries = fingerprints.map((fp) => entryByFingerprint.get(fp));
 
   const out = {
-    version: 1,
+    version: 2,
     tool: "mcp-safety-scanner",
     generatedAt: new Date().toISOString(),
     fingerprints,

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.5
+
+- Baselines are now versioned: newly written baselines (v2) include line/column in fingerprints to avoid accidentally suppressing new identical findings in the same file.
+
 ## v0.4.4
 
 - Improve finding snippets for multi-line matches by including a collapsed multi-line context (used in text/github/SARIF outputs).

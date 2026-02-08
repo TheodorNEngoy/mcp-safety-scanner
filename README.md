@@ -9,10 +9,10 @@ This is a heuristic scanner. It is meant to catch obvious mistakes fast (especia
 ```bash
 # via npx from GitHub (no npm publish required)
 # (pin to a tag or a full commit SHA)
-npx --yes --package=github:TheodorNEngoy/mcp-safety-scanner#v0.4.4 mcp-safety-scan . --fail-on=high
+npx --yes --package=github:TheodorNEngoy/mcp-safety-scanner#v0.4.5 mcp-safety-scan . --fail-on=high
 
 # install globally from GitHub (optional)
-npm i -g github:TheodorNEngoy/mcp-safety-scanner#v0.4.4
+npm i -g github:TheodorNEngoy/mcp-safety-scanner#v0.4.5
 mcp-safety-scan . --fail-on=high
 
 # via Docker (no Node install)
@@ -87,7 +87,7 @@ Add this to a workflow.
 
 Notes:
 - For supply-chain safety, pin to a full commit SHA.
-- For convenience, use a release tag (e.g. `v0.4.4`) or `v0` to track the latest `v0.x`.
+- For convenience, use a release tag (e.g. `v0.4.5`) or `v0` to track the latest `v0.x`.
 
 ```yaml
 name: safety-scan
@@ -100,7 +100,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.4.4
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.4.5
         with:
           path: .
           # files-from: changed-files.txt
@@ -120,7 +120,7 @@ Scan only changed files in PRs (optional, reduces noise):
       - name: Compute changed files
         run: |
           git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" > changed-files.txt
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.4.4
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.4.5
         with:
           path: .
           files-from: changed-files.txt
@@ -137,7 +137,7 @@ If you prefer not to depend on a third-party Action in your CI, you can run the 
           node-version: 20
       - name: MCP safety scan (npx)
         run: |
-          npx --yes --package=github:TheodorNEngoy/mcp-safety-scanner#v0.4.4 \\
+          npx --yes --package=github:TheodorNEngoy/mcp-safety-scanner#v0.4.5 \\
             mcp-safety-scan . --format=github --fail-on=high
 ```
 
@@ -155,7 +155,7 @@ Or via Docker:
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.4.4
+      - uses: TheodorNEngoy/mcp-safety-scanner@v0.4.5
         id: scan
         with:
           path: .
@@ -177,7 +177,7 @@ If you use `pre-commit`, you can run the scanner on changed files at commit time
 ```yaml
 repos:
   - repo: https://github.com/TheodorNEngoy/mcp-safety-scanner
-    rev: v0.4.4
+    rev: v0.4.5
     hooks:
       - id: mcp-safety-scan
         args: ["--fail-on=high"]

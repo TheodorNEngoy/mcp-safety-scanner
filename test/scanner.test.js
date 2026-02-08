@@ -202,14 +202,44 @@ test("baseline filters known findings", async () => {
   const baselinePath = path.resolve("test/tmp-baseline.json");
   try {
     const baseline = await writeBaseline(baselinePath, res);
-    const set = await loadBaseline(baselinePath);
-    const filtered = applyBaseline(res.findings, set);
+    const loaded = await loadBaseline(baselinePath);
+    const filtered = applyBaseline(res.findings, loaded);
     assert.equal(filtered.length, 0);
 
     // Baselines should be stable and deduplicated by fingerprint.
     const uniq = new Set(baseline.entries.map((e) => e.fingerprint));
     assert.equal(uniq.size, baseline.entries.length);
     assert.equal(baseline.fingerprints.length, baseline.entries.length);
+    assert.equal(loaded.version, baseline.version);
+  } finally {
+    await fs.unlink(baselinePath).catch(() => {});
+  }
+});
+
+test("baseline v2 does not suppress new identical excerpts at different lines", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures, { files: ["duplicate-eval.js"] });
+  assert.equal(res.filesScanned, 1);
+
+  const evalFindings = res.findings.filter((f) => f.ruleId === "dangerous-eval");
+  assert.equal(evalFindings.length, 2);
+  assert.equal(evalFindings[0].excerpt, evalFindings[1].excerpt);
+
+  const baselinePath = path.resolve("test/tmp-baseline-v2.json");
+  try {
+    const baseline = await writeBaseline(baselinePath, res);
+    assert.equal(baseline.version, 2);
+    assert.equal(baseline.entries.length, 2);
+
+    const loaded = await loadBaseline(baselinePath);
+    assert.equal(loaded.version, 2);
+
+    // Existing findings are suppressed.
+    assert.equal(applyBaseline(res.findings, loaded).length, 0);
+
+    // A new occurrence at a different line should not be suppressed.
+    const fake = { ...evalFindings[0], line: evalFindings[0].line + 100 };
+    assert.equal(applyBaseline([fake], loaded).length, 1);
   } finally {
     await fs.unlink(baselinePath).catch(() => {});
   }
