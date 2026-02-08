@@ -12,6 +12,7 @@ import { applyBaseline, loadBaseline, writeBaseline } from "./baseline.js";
 const HELP = `
 Usage:
   mcp-safety-scan [path] [--format=json|text|sarif|github] [--fail-on=high|medium|low|info|none]
+  mcp-safety-scan [path] [file ...]
   mcp-safety-scan [path] [--ignore-dir=DIR]...
   mcp-safety-scan [path] --files-from=changed-files.txt
   mcp-safety-scan [path] --include-tests
@@ -26,6 +27,7 @@ Examples:
   mcp-safety-scan /path/to/repo --fail-on=medium
   mcp-safety-scan /path/to/repo --ignore-dir=test --ignore-dir=__tests__
   git diff --name-only origin/main...HEAD > changed.txt && mcp-safety-scan . --files-from=changed.txt
+  mcp-safety-scan . src/server.ts src/auth.py
   mcp-safety-scan . --include-tests
   mcp-safety-scan /path/to/repo --write-baseline .mcp-safety-baseline.json
 `.trim();
@@ -104,6 +106,10 @@ if (filesFrom) {
     process.exitCode = 2;
     process.exit();
   }
+} else if (positionals.length > 1) {
+  // Support `mcp-safety-scan . file1.ts file2.py ...` for integration with
+  // tools like pre-commit (which pass changed filenames as args).
+  filesList = positionals.slice(1).map((p) => String(p));
 }
 
 const resultRaw = await scanPath(target, {

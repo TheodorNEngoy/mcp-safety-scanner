@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import fs from "node:fs/promises";
+import process from "node:process";
 
 import { scanPath } from "../src/scanner.js";
 import { formatSarif } from "../src/sarif.js";
@@ -123,6 +125,25 @@ test("supports scanning an explicit file list", async () => {
   assert.equal(res2.filesScanned, 1);
   assert.ok(res2.findings.some((f) => f.file === "eval.js"));
   assert.ok(!res2.findings.some((f) => String(f.file).split(/[\\\\/]/)[0] === "ignored"));
+});
+
+test("cli supports scanning a positional file list", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const cli = path.resolve("src/cli.js");
+
+  const r = spawnSync(
+    process.execPath,
+    [cli, fixtures, "cors-origin-true.js", "--format=json", "--fail-on=none"],
+    { encoding: "utf8" }
+  );
+
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+
+  const out = JSON.parse(r.stdout);
+  assert.equal(out.filesScanned, 1);
+  assert.ok(out.findings.length >= 1);
+  assert.ok(out.findings.every((f) => f.file === "cors-origin-true.js"));
+  assert.ok(out.findings.some((f) => f.ruleId === "cors-reflect-origin"));
 });
 
 test("supports extra ignore dirs", async () => {

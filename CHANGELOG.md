@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.2
+
+- CLI: support scanning an explicit file list via positional args (`mcp-safety-scan . file1.ts file2.py ...`).
+- Add a `pre-commit` hook definition (`.pre-commit-hooks.yaml`).
+
 ## v0.4.1
 
 - Fix multi-line regex false positives for `shell: true` / `shell=True` when multiple calls are near each other.
