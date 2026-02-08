@@ -158,6 +158,10 @@ Or via Docker:
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
+permissions:
+  contents: read
+  security-events: write
+
       - uses: TheodorNEngoy/mcp-safety-scanner@2e4512a3bc199a38b5c00e41daea8abdc1e39811 # v0.4.7
         id: scan
         with:
@@ -170,7 +174,7 @@ SARIF upload (optional, requires permissions in some orgs):
           sarif-output: mcp-safety.sarif
       - uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: mcp-safety.sarif
+          sarif_file: ${{ steps.scan.outputs.sarif_file }}
 ```
 
 ## Pre-commit
