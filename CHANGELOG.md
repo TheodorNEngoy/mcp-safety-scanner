@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.9
+
+- Reduce false positives for Go request-body reads: `io.ReadAll(req.Body)` is no longer flagged inside `RoundTrip` implementations.
+
 ## v0.3.8
 
 - Baseline writing now deduplicates entries by fingerprint to keep `.mcp-safety-baseline.json` stable and compact.

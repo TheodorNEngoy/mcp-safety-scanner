@@ -272,7 +272,7 @@ export const RULES = Object.freeze([
     // Avoid flagging common safe patterns where the handler has already wrapped
     // the request body with a size-limited reader.
     excludeLookbackLines: 40,
-    excludeLookbackPatterns: [/\bMaxBytesReader\s*\(/, /\bMaxBytesHandler\s*\(/],
+    excludeLookbackPatterns: [/\bMaxBytesReader\s*\(/, /\bMaxBytesHandler\s*\(/, /\bRoundTrip\s*\(/],
     patterns: [
       /\b(?:io|ioutil)\.ReadAll\s*\(\s*(?:r|req|request)\.Body\s*\)/,
       /\b(?:io|ioutil)\.ReadAll\s*\(\s*c\.Request\.Body\s*\)/,
