@@ -90,7 +90,7 @@ Add this to a workflow.
 
 Notes:
 - For supply-chain safety, pin to a full commit SHA.
-- For convenience, use a release tag (e.g. `v0.4.6`).
+- For convenience, use a release tag (e.g. `v0.4.6`) or the moving major tag `v0`.
 
 ```yaml
 name: safety-scan
@@ -103,7 +103,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.4.6
+      - uses: TheodorNEngoy/mcp-safety-scanner@b37568ec70ebd233e0516e2263fe4fce58ad0969 # v0.4.6
         with:
           path: .
           # files-from: changed-files.txt
@@ -123,7 +123,7 @@ Scan only changed files in PRs (optional, reduces noise):
       - name: Compute changed files
         run: |
           git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" > changed-files.txt
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.4.6
+      - uses: TheodorNEngoy/mcp-safety-scanner@b37568ec70ebd233e0516e2263fe4fce58ad0969 # v0.4.6
         with:
           path: .
           files-from: changed-files.txt
@@ -158,7 +158,7 @@ Or via Docker:
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.4.6
+      - uses: TheodorNEngoy/mcp-safety-scanner@b37568ec70ebd233e0516e2263fe4fce58ad0969 # v0.4.6
         id: scan
         with:
           path: .
