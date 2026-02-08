@@ -21,6 +21,15 @@ test("detects wildcard and reflected CORS", async () => {
   assert.ok(res.findings.some((f) => f.file === "go-allowall-cors.go" && f.ruleId === "cors-wildcard-origin"));
 });
 
+test("detects Node child_process shell:true options", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures);
+
+  assert.ok(
+    res.findings.some((f) => f.file === "child-process-shell-true.js" && f.ruleId === "child-process-shell-true")
+  );
+});
+
 test("detects python and go footguns", async () => {
   const fixtures = path.resolve("test/fixtures");
   const res = await scanPath(fixtures);

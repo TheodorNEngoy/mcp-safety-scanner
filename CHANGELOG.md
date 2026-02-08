@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.4
+
+- Flag Node `spawn`/`execFile` usage with `{ shell: true }` as a high-severity shell execution footgun.
+
 ## v0.3.3
 
 - Skip common test/fixture directories by default (e.g. `test/`, `tests/`, `__tests__/`, `fixtures/`) to reduce false positives.

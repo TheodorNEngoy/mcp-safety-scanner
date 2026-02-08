@@ -153,6 +153,21 @@ export const RULES = Object.freeze([
   }),
 
   rule({
+    id: "child-process-shell-true",
+    severity: "high",
+    title: "Shell execution via spawn/execFile with shell: true",
+    description:
+      "The `shell: true` option executes via a shell, which is easy to misuse with untrusted input. Prefer direct argument arrays (no shell) and strict allowlists when absolutely required.",
+    help: "Fix: avoid `shell: true`; use spawn/execFile with shell disabled (default) + strict allowlists for command names/args.",
+    patterns: [
+      /\bspawnSync\s*\([^\n]*\bshell\s*:\s*true\b/i,
+      /\bspawn\s*\([^\n]*\bshell\s*:\s*true\b/i,
+      /\bexecFileSync\s*\([^\n]*\bshell\s*:\s*true\b/i,
+      /\bexecFile\s*\([^\n]*\bshell\s*:\s*true\b/i,
+    ],
+  }),
+
+  rule({
     id: "file-delete-apis",
     severity: "medium",
     title: "File delete APIs used (rm/unlink)",
