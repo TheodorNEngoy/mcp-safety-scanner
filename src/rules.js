@@ -220,10 +220,10 @@ export const RULES = Object.freeze([
     help: "Fix: avoid `shell: true`; use spawn/execFile with shell disabled (default) + strict allowlists for command names/args.",
     multiline: true,
     patterns: [
-      /\bspawnSync\s*\([\s\S]{0,400}\bshell\s*:\s*true\b/i,
-      /\bspawn\s*\([\s\S]{0,400}\bshell\s*:\s*true\b/i,
-      /\bexecFileSync\s*\([\s\S]{0,400}\bshell\s*:\s*true\b/i,
-      /\bexecFile\s*\([\s\S]{0,400}\bshell\s*:\s*true\b/i,
+      /\bspawnSync\s*\((?:(?!\n\s*(?:spawnSync|spawn|execFileSync|execFile)\b)[\s\S]){0,400}\bshell\s*:\s*true\b/i,
+      /\bspawn\s*\((?:(?!\n\s*(?:spawnSync|spawn|execFileSync|execFile)\b)[\s\S]){0,400}\bshell\s*:\s*true\b/i,
+      /\bexecFileSync\s*\((?:(?!\n\s*(?:spawnSync|spawn|execFileSync|execFile)\b)[\s\S]){0,400}\bshell\s*:\s*true\b/i,
+      /\bexecFile\s*\((?:(?!\n\s*(?:spawnSync|spawn|execFileSync|execFile)\b)[\s\S]){0,400}\bshell\s*:\s*true\b/i,
     ],
   }),
 
@@ -322,8 +322,8 @@ export const RULES = Object.freeze([
     exts: PY_EXTS,
     multiline: true,
     patterns: [
-      /\bsubprocess\.(run|Popen|call|check_output|check_call)\s*\([\s\S]{0,400}\bshell\s*=\s*True\b/,
-      /\bPopen\s*\([\s\S]{0,400}\bshell\s*=\s*True\b/,
+      /\bsubprocess\.(run|Popen|call|check_output|check_call)\s*\((?:(?!\n\s*(?:subprocess\.|Popen\b))[\s\S]){0,400}\bshell\s*=\s*True\b/,
+      /\bPopen\s*\((?:(?!\n\s*(?:subprocess\.|Popen\b))[\s\S]){0,400}\bshell\s*=\s*True\b/,
       /\bos\.system\s*\(/,
     ],
   }),

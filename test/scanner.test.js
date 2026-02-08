@@ -70,6 +70,9 @@ test("detects python and go footguns", async () => {
   assert.ok(ruleIds.has("go-readall-request-body-no-limit"));
 
   assert.ok(res.findings.some((f) => f.file === "python-shell-exec-multiline.py" && f.ruleId === "python-shell-exec"));
+  const multiCall = res.findings.filter((f) => f.file === "python-shell-exec-multi-call.py" && f.ruleId === "python-shell-exec");
+  assert.equal(multiCall.length, 1);
+  assert.equal(multiCall[0].line, 6);
   assert.ok(
     !res.findings.some((f) => f.file === "go-readall-body-maxbytes.go" && f.ruleId === "go-readall-request-body-no-limit")
   );

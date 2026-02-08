@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.1
+
+- Fix multi-line regex false positives for `shell: true` / `shell=True` when multiple calls are near each other.
+
 ## v0.4.0
 
 - Add a critical CORS footgun rule: credentialed CORS combined with wildcard/reflected origins (`cors-credentials-any-origin`).
