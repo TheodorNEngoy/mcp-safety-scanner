@@ -103,7 +103,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.4.5
+      - uses: TheodorNEngoy/mcp-safety-scanner@78607a158143dcb38ca27187765656dd2deb5f3e # v0.4.5
         with:
           path: .
           # files-from: changed-files.txt
@@ -123,7 +123,7 @@ Scan only changed files in PRs (optional, reduces noise):
       - name: Compute changed files
         run: |
           git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}" > changed-files.txt
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.4.5
+      - uses: TheodorNEngoy/mcp-safety-scanner@78607a158143dcb38ca27187765656dd2deb5f3e # v0.4.5
         with:
           path: .
           files-from: changed-files.txt
@@ -140,7 +140,7 @@ If you prefer not to depend on a third-party Action in your CI, you can run the 
           node-version: 20
       - name: MCP safety scan (npx)
         run: |
-          npx --yes --package=github:TheodorNEngoy/mcp-safety-scanner#v0.4.5 \\
+          npx --yes --package=github:TheodorNEngoy/mcp-safety-scanner#78607a158143dcb38ca27187765656dd2deb5f3e \
             mcp-safety-scan . --format=github --fail-on=high
 ```
 
@@ -158,7 +158,7 @@ Or via Docker:
 SARIF upload (optional, requires permissions in some orgs):
 
 ```yaml
-      - uses: TheodorNEngoy/mcp-safety-scanner@v0.4.5
+      - uses: TheodorNEngoy/mcp-safety-scanner@78607a158143dcb38ca27187765656dd2deb5f3e # v0.4.5
         id: scan
         with:
           path: .
