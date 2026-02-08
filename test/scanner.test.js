@@ -57,6 +57,9 @@ test("detects python and go footguns", async () => {
   assert.ok(ruleIds.has("go-readall-request-body-no-limit"));
 
   assert.ok(res.findings.some((f) => f.file === "python-shell-exec-multiline.py" && f.ruleId === "python-shell-exec"));
+  assert.ok(
+    !res.findings.some((f) => f.file === "go-readall-body-maxbytes.go" && f.ruleId === "go-readall-request-body-no-limit")
+  );
 });
 
 test("detects public network binding (0.0.0.0 / ::)", async () => {

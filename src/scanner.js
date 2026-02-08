@@ -154,6 +154,24 @@ function buildMultilineChunk(lines, start, windowSize) {
   return out.join("\n");
 }
 
+function isExcludedByLookback(lines, i, rule) {
+  const patterns = Array.isArray(rule.excludeLookbackPatterns) ? rule.excludeLookbackPatterns : [];
+  if (!patterns.length) return false;
+
+  const nRaw = Number(rule.excludeLookbackLines);
+  if (!Number.isFinite(nRaw) || nRaw <= 0) return false;
+  const n = Math.max(1, Math.min(200, nRaw));
+
+  const start = Math.max(0, i - n);
+  const chunk = lines.slice(start, i).join("\n");
+  if (!chunk) return false;
+
+  for (const re of patterns) {
+    if (chunk.search(re) !== -1) return true;
+  }
+  return false;
+}
+
 function scanTextByLines({ root, relPath, text, rule }) {
   const findings = [];
   const lines = text.split(/\r?\n/);
@@ -187,6 +205,7 @@ function scanTextByLines({ root, relPath, text, rule }) {
       // Avoid duplicate multi-line matches by only reporting matches that start
       // on the current line. (We'll scan subsequent lines too.)
       if (idx > maxStart) continue;
+      if (isExcludedByLookback(lines, i, rule)) break;
       const excerpt = line.trim().slice(0, 240);
       findings.push({
         ruleId: rule.id,

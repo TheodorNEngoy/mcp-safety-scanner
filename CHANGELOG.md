@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.7
+
+- Reduce false positives for Go request-body reads: `io.ReadAll(r.Body)` is no longer flagged when a nearby `http.MaxBytesReader/MaxBytesHandler` is present.
+
 ## v0.3.6
 
 - Improve multi-line detection for several rules (common in formatted code): CORS wildcard/reflect origin, public binding (0.0.0.0/::), and shell execution patterns in Node/Python/Go.

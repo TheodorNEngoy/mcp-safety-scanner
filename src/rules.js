@@ -26,6 +26,8 @@ function rule({
   patterns,
   multiline = false,
   multilineWindow = 10,
+  excludeLookbackPatterns = null,
+  excludeLookbackLines = 0,
 }) {
   return Object.freeze({
     id,
@@ -37,6 +39,8 @@ function rule({
     patterns,
     multiline: Boolean(multiline),
     multilineWindow: Number(multilineWindow),
+    excludeLookbackPatterns: Array.isArray(excludeLookbackPatterns) ? excludeLookbackPatterns : [],
+    excludeLookbackLines: Number(excludeLookbackLines),
   });
 }
 
@@ -265,6 +269,10 @@ export const RULES = Object.freeze([
       "`io.ReadAll(r.Body)` reads the entire request body into memory. Use `http.MaxBytesReader` (net/http) or a streaming/limit approach to enforce a maximum request size and return 413 when exceeded.",
     help: "Fix: enforce a max body size (e.g. http.MaxBytesReader) before io.ReadAll; return 413 Payload Too Large when exceeded.",
     exts: GO_EXTS,
+    // Avoid flagging common safe patterns where the handler has already wrapped
+    // the request body with a size-limited reader.
+    excludeLookbackLines: 40,
+    excludeLookbackPatterns: [/\bMaxBytesReader\s*\(/, /\bMaxBytesHandler\s*\(/],
     patterns: [
       /\b(?:io|ioutil)\.ReadAll\s*\(\s*(?:r|req|request)\.Body\s*\)/,
       /\b(?:io|ioutil)\.ReadAll\s*\(\s*c\.Request\.Body\s*\)/,
