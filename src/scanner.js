@@ -120,6 +120,40 @@ function normalizeFileList({ root, files, exts, ignoreDirs }) {
   return out;
 }
 
+function buildMultilineChunk(lines, start, windowSize) {
+  // Build a short chunk for multi-line heuristics while stripping obvious
+  // comment-only lines to avoid matching patterns inside comments.
+  const end = Math.min(lines.length, start + windowSize);
+  const out = [];
+  let inBlockComment = false;
+
+  for (let i = start; i < end; i++) {
+    const line = lines[i] ?? "";
+    const trimmed = line.trimStart();
+
+    if (inBlockComment) {
+      if (trimmed.includes("*/")) inBlockComment = false;
+      out.push("");
+      continue;
+    }
+
+    if (trimmed.startsWith("/*")) {
+      if (!trimmed.includes("*/")) inBlockComment = true;
+      out.push("");
+      continue;
+    }
+
+    if (trimmed.startsWith("//") || trimmed.startsWith("#")) {
+      out.push("");
+      continue;
+    }
+
+    out.push(line);
+  }
+
+  return out.join("\n");
+}
+
 function scanTextByLines({ root, relPath, text, rule }) {
   const findings = [];
   const lines = text.split(/\r?\n/);
@@ -142,9 +176,17 @@ function scanTextByLines({ root, relPath, text, rule }) {
     if (trimmed.startsWith("//") || trimmed.startsWith("#")) continue;
 
     if (isLineSuppressedForRule(lines, i, rule.id)) continue;
+
+    const multilineWindow = rule.multiline ? Math.max(2, Math.min(50, Number(rule.multilineWindow) || 10)) : 1;
+    const haystack = rule.multiline ? buildMultilineChunk(lines, i, multilineWindow) : line;
+    const maxStart = rule.multiline ? line.length : Infinity;
+
     for (const re of rule.patterns) {
-      const idx = line.search(re);
+      const idx = haystack.search(re);
       if (idx === -1) continue;
+      // Avoid duplicate multi-line matches by only reporting matches that start
+      // on the current line. (We'll scan subsequent lines too.)
+      if (idx > maxStart) continue;
       const excerpt = line.trim().slice(0, 240);
       findings.push({
         ruleId: rule.id,

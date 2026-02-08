@@ -19,6 +19,7 @@ test("detects wildcard and reflected CORS", async () => {
 
   assert.ok(res.findings.some((f) => f.file === "cors-origin-true.js" && f.ruleId === "cors-reflect-origin"));
   assert.ok(res.findings.some((f) => f.file === "go-allowall-cors.go" && f.ruleId === "cors-wildcard-origin"));
+  assert.ok(res.findings.some((f) => f.file === "cors-multiline-wildcard.js" && f.ruleId === "cors-wildcard-origin"));
 });
 
 test("detects Node child_process shell:true options", async () => {
@@ -27,6 +28,11 @@ test("detects Node child_process shell:true options", async () => {
 
   assert.ok(
     res.findings.some((f) => f.file === "child-process-shell-true.js" && f.ruleId === "child-process-shell-true")
+  );
+  assert.ok(
+    res.findings.some(
+      (f) => f.file === "child-process-shell-true-multiline.js" && f.ruleId === "child-process-shell-true"
+    )
   );
 });
 
@@ -49,6 +55,8 @@ test("detects python and go footguns", async () => {
   assert.ok(ruleIds.has("python-request-body-no-limit"));
   assert.ok(ruleIds.has("go-shell-exec"));
   assert.ok(ruleIds.has("go-readall-request-body-no-limit"));
+
+  assert.ok(res.findings.some((f) => f.file === "python-shell-exec-multiline.py" && f.ruleId === "python-shell-exec"));
 });
 
 test("detects public network binding (0.0.0.0 / ::)", async () => {

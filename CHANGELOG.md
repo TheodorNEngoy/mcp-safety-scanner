@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.6
+
+- Improve multi-line detection for several rules (common in formatted code): CORS wildcard/reflect origin, public binding (0.0.0.0/::), and shell execution patterns in Node/Python/Go.
+
 ## v0.3.5
 
 - Flag Node `spawn`/`execFile` usage that explicitly invokes a shell interpreter (`sh -c`, `cmd /c`, `powershell -Command`).

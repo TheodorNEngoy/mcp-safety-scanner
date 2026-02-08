@@ -16,11 +16,31 @@ const GO_EXTS = Object.freeze([".go"]);
 
 const EVAL_EXTS = Object.freeze([...JS_TS_EXTS, ...PY_EXTS]);
 
-function rule({ id, severity, title, description, help = "", exts = JS_TS_EXTS, patterns }) {
-  return Object.freeze({ id, severity, title, description, help, exts, patterns });
+function rule({
+  id,
+  severity,
+  title,
+  description,
+  help = "",
+  exts = JS_TS_EXTS,
+  patterns,
+  multiline = false,
+  multilineWindow = 10,
+}) {
+  return Object.freeze({
+    id,
+    severity,
+    title,
+    description,
+    help,
+    exts,
+    patterns,
+    multiline: Boolean(multiline),
+    multilineWindow: Number(multilineWindow),
+  });
 }
 
-// Each pattern is line-based and should be fairly specific to reduce noise.
+// Each pattern is line-based or small-window multi-line and should be fairly specific to reduce noise.
 export const RULES = Object.freeze([
   rule({
     id: "cors-wildcard-origin",
@@ -30,6 +50,7 @@ export const RULES = Object.freeze([
       "Allowing any origin enables cross-site requests. For MCP/tool servers, prefer an allowlist (e.g. chatgpt.com) and do not combine wildcard origin with credentials.",
     help: "Fix: replace '*' with an explicit origin allowlist (e.g. https://chatgpt.com, https://chat.openai.com).",
     exts: null,
+    multiline: true,
     patterns: [
       /Access-Control-Allow-Origin[^\n]*["']\*["']/i,
       /setHeader\(\s*["']Access-Control-Allow-Origin["']\s*,\s*["']\*["']\s*\)/i,
@@ -54,6 +75,7 @@ export const RULES = Object.freeze([
       "Reflecting the request Origin header without validation effectively allows any website to call your server. Use an explicit allowlist check.",
     help: "Fix: only echo Origin after allowlist validation; otherwise omit Access-Control-Allow-Origin.",
     exts: null,
+    multiline: true,
     patterns: [
       /Access-Control-Allow-Origin[^\n]*(req\.headers\.origin|request\.headers\.origin)/i,
       /setHeader\(\s*["']Access-Control-Allow-Origin["'][^\n]*(req\.headers\.origin|request\.headers\.origin)/i,
@@ -94,10 +116,11 @@ export const RULES = Object.freeze([
       "Binding to 0.0.0.0/:: exposes the server to the network. For MCP/tool servers, prefer binding to localhost by default and making public binding an explicit opt-in.",
     help: "Fix: default to 127.0.0.1/localhost; require an explicit env var/flag to bind to 0.0.0.0/::.",
     exts: null,
+    multiline: true,
     patterns: [
       // JS/TS (Node/Express/Hono/Deno)
-      /\blisten\s*\([^\n]*["']0\.0\.0\.0["']/,
-      /\blisten\s*\([^\n]*["']::["']/,
+      /\blisten\s*\([^)]*["']0\.0\.0\.0["']/,
+      /\blisten\s*\([^)]*["']::["']/,
       /\b(hostname|host)\s*:\s*["']0\.0\.0\.0["']/,
       /\b(hostname|host)\s*:\s*["']::["']/,
 
@@ -110,8 +133,8 @@ export const RULES = Object.freeze([
       // Go (net/http, net.Listen)
       /\bListenAndServe(?:TLS)?\s*\(\s*["']0\.0\.0\.0:/,
       /\bListenAndServe(?:TLS)?\s*\(\s*["']\[\:\:\]/,
-      /\bnet\.Listen\s*\([^\n]*["']0\.0\.0\.0:/,
-      /\bnet\.Listen\s*\([^\n]*["']\[\:\:\]/,
+      /\bnet\.Listen\s*\([^)]*["']0\.0\.0\.0:/,
+      /\bnet\.Listen\s*\([^)]*["']\[\:\:\]/,
     ],
   }),
 
@@ -159,11 +182,12 @@ export const RULES = Object.freeze([
     description:
       "The `shell: true` option executes via a shell, which is easy to misuse with untrusted input. Prefer direct argument arrays (no shell) and strict allowlists when absolutely required.",
     help: "Fix: avoid `shell: true`; use spawn/execFile with shell disabled (default) + strict allowlists for command names/args.",
+    multiline: true,
     patterns: [
-      /\bspawnSync\s*\([^\n]*\bshell\s*:\s*true\b/i,
-      /\bspawn\s*\([^\n]*\bshell\s*:\s*true\b/i,
-      /\bexecFileSync\s*\([^\n]*\bshell\s*:\s*true\b/i,
-      /\bexecFile\s*\([^\n]*\bshell\s*:\s*true\b/i,
+      /\bspawnSync\s*\([\s\S]{0,400}\bshell\s*:\s*true\b/i,
+      /\bspawn\s*\([\s\S]{0,400}\bshell\s*:\s*true\b/i,
+      /\bexecFileSync\s*\([\s\S]{0,400}\bshell\s*:\s*true\b/i,
+      /\bexecFile\s*\([\s\S]{0,400}\bshell\s*:\s*true\b/i,
     ],
   }),
 
@@ -174,6 +198,7 @@ export const RULES = Object.freeze([
     description:
       "Spawning a shell interpreter (`sh -c`, `cmd /c`, `powershell -Command`) is easy to misuse with untrusted input. Prefer running a specific binary with an argument array, and enforce strict allowlists when absolutely required.",
     help: "Fix: avoid `sh -c` / `cmd /c` / `powershell -Command`; run commands directly with argv arrays + strict allowlists.",
+    multiline: true,
     patterns: [
       /\b(?:spawnSync|spawn|execFileSync|execFile)\s*\(\s*["'](?:sh|bash|zsh)["']\s*,\s*\[\s*["']-c["']/,
       /\b(?:spawnSync|spawn|execFileSync|execFile)\s*\(\s*["'](?:cmd|cmd\.exe)["']\s*,\s*\[\s*["'](?:\/c|\/C)["']/,
@@ -265,9 +290,10 @@ export const RULES = Object.freeze([
       "Shell execution is easy to misuse with untrusted input. Avoid `shell=True` and `os.system()`; prefer argument arrays and strict allowlists when absolutely required.",
     help: "Fix: avoid shell=True/os.system(); use subprocess.run([cmd, ...], shell=False) + allowlists.",
     exts: PY_EXTS,
+    multiline: true,
     patterns: [
-      /\bsubprocess\.(run|Popen|call|check_output|check_call)\s*\([^\n]*\bshell\s*=\s*True\b/,
-      /\bPopen\s*\([^\n]*\bshell\s*=\s*True\b/,
+      /\bsubprocess\.(run|Popen|call|check_output|check_call)\s*\([\s\S]{0,400}\bshell\s*=\s*True\b/,
+      /\bPopen\s*\([\s\S]{0,400}\bshell\s*=\s*True\b/,
       /\bos\.system\s*\(/,
     ],
   }),
@@ -280,6 +306,7 @@ export const RULES = Object.freeze([
       "Invoking a shell (`sh -c`, `cmd /c`, etc.) is easy to misuse with untrusted input. Prefer direct argument arrays and strict allowlists when absolutely required.",
     help: "Fix: avoid sh -c/cmd /c; use exec.Command(name, args...) with allowlisted names/args.",
     exts: GO_EXTS,
+    multiline: true,
     patterns: [
       /\bexec\.Command\s*\(\s*"(?:sh|bash|zsh)"\s*,\s*"-c"\s*[,)]/,
       /\bexec\.CommandContext\s*\(\s*[^,]+,\s*"(?:sh|bash|zsh)"\s*,\s*"-c"\s*[,)]/,
