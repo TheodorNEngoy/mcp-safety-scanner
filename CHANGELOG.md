@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.5
+
+- Flag Node `spawn`/`execFile` usage that explicitly invokes a shell interpreter (`sh -c`, `cmd /c`, `powershell -Command`).
+
 ## v0.3.4
 
 - Flag Node `spawn`/`execFile` usage with `{ shell: true }` as a high-severity shell execution footgun.

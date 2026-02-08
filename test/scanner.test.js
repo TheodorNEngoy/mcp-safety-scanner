@@ -30,6 +30,15 @@ test("detects Node child_process shell:true options", async () => {
   );
 });
 
+test("detects Node child_process spawn of shell interpreters (sh -c / cmd /c / powershell -Command)", async () => {
+  const fixtures = path.resolve("test/fixtures");
+  const res = await scanPath(fixtures);
+
+  assert.ok(
+    res.findings.some((f) => f.file === "child-process-shell-spawn.js" && f.ruleId === "child-process-shell-spawn")
+  );
+});
+
 test("detects python and go footguns", async () => {
   const fixtures = path.resolve("test/fixtures");
   const res = await scanPath(fixtures);

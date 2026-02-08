@@ -168,6 +168,20 @@ export const RULES = Object.freeze([
   }),
 
   rule({
+    id: "child-process-shell-spawn",
+    severity: "high",
+    title: "Shell execution via spawn/execFile (sh -c / cmd /c / powershell -Command)",
+    description:
+      "Spawning a shell interpreter (`sh -c`, `cmd /c`, `powershell -Command`) is easy to misuse with untrusted input. Prefer running a specific binary with an argument array, and enforce strict allowlists when absolutely required.",
+    help: "Fix: avoid `sh -c` / `cmd /c` / `powershell -Command`; run commands directly with argv arrays + strict allowlists.",
+    patterns: [
+      /\b(?:spawnSync|spawn|execFileSync|execFile)\s*\(\s*["'](?:sh|bash|zsh)["']\s*,\s*\[\s*["']-c["']/,
+      /\b(?:spawnSync|spawn|execFileSync|execFile)\s*\(\s*["'](?:cmd|cmd\.exe)["']\s*,\s*\[\s*["'](?:\/c|\/C)["']/,
+      /\b(?:spawnSync|spawn|execFileSync|execFile)\s*\(\s*["'](?:powershell|powershell\.exe|pwsh|pwsh\.exe)["']\s*,\s*\[\s*["']-Command["']/,
+    ],
+  }),
+
+  rule({
     id: "file-delete-apis",
     severity: "medium",
     title: "File delete APIs used (rm/unlink)",
