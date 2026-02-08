@@ -34,18 +34,23 @@ export async function loadBaseline(filePath) {
 }
 
 export async function writeBaseline(filePath, { findings } = {}) {
-  const entries = (findings ?? []).map((f) => {
+  // Deduplicate entries by fingerprint to avoid bloated baselines when identical
+  // excerpts occur multiple times in the same file (common for repeated patterns).
+  const entryByFingerprint = new Map();
+  for (const f of findings ?? []) {
     const fingerprint = findingFingerprint(f);
-    return {
+    if (entryByFingerprint.has(fingerprint)) continue;
+    entryByFingerprint.set(fingerprint, {
       fingerprint,
       ruleId: f.ruleId,
       severity: f.severity,
       file: f.file,
       excerpt: f.excerpt ?? "",
-    };
-  });
+    });
+  }
 
-  const fingerprints = Array.from(new Set(entries.map((e) => e.fingerprint))).sort();
+  const fingerprints = Array.from(entryByFingerprint.keys()).sort();
+  const entries = fingerprints.map((fp) => entryByFingerprint.get(fp));
 
   const out = {
     version: 1,
@@ -58,4 +63,3 @@ export async function writeBaseline(filePath, { findings } = {}) {
   await fs.writeFile(filePath, JSON.stringify(out, null, 2) + "\n", "utf8");
   return out;
 }
-

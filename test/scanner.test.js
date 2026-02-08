@@ -150,10 +150,15 @@ test("baseline filters known findings", async () => {
 
   const baselinePath = path.resolve("test/tmp-baseline.json");
   try {
-    await writeBaseline(baselinePath, res);
+    const baseline = await writeBaseline(baselinePath, res);
     const set = await loadBaseline(baselinePath);
     const filtered = applyBaseline(res.findings, set);
     assert.equal(filtered.length, 0);
+
+    // Baselines should be stable and deduplicated by fingerprint.
+    const uniq = new Set(baseline.entries.map((e) => e.fingerprint));
+    assert.equal(uniq.size, baseline.entries.length);
+    assert.equal(baseline.fingerprints.length, baseline.entries.length);
   } finally {
     await fs.unlink(baselinePath).catch(() => {});
   }

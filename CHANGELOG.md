@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.8
+
+- Baseline writing now deduplicates entries by fingerprint to keep `.mcp-safety-baseline.json` stable and compact.
+
 ## v0.3.7
 
 - Reduce false positives for Go request-body reads: `io.ReadAll(r.Body)` is no longer flagged when a nearby `http.MaxBytesReader/MaxBytesHandler` is present.
